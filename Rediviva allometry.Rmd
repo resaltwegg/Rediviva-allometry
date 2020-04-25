@@ -33,9 +33,9 @@ We'll need the following R packages:
 ```{r libs, message=F}
 library(ape)
 library(phytools)
+library(geiger)
 library(nlme)
 library(RColorBrewer)
-library(lattice)
 ```
 
 ```{r, include=F}
@@ -85,10 +85,11 @@ allometries$lci.slopes <- confint(m2)[(nspecies +1):(nspecies*2),1]
 allometries$uci.slopes <- confint(m2)[(nspecies +1):(nspecies*2),2]
 ```
 
-The models above fitted separate allometric curves to each species, i.e. $ln(leg) = ln(a) + b \times ln(body)$. The slopes estimate $b$ for each species and exponentiating the intercepts estimates $a$ for each species. The table below gives the parameter estimates with confidence intervals.
+The models above fitted separate allometric curves to each species, i.e. $ln(leg) = ln(a) + b \times ln(body)$. The slopes estimate $b$ for each species and exponentiating the intercepts estimates $a$ for each species. The table below gives the parameter estimates with confidence intervals and Figure \ref{fig:staticallometry} plots the fitted relationships.
 
 
-```{r, echo=F}
+```{r alloparms, echo=F}
+rownames(allometries) <- substr(rownames(allometries), start=5, stop=100)
 knitr::kable(allometries, digits = 2, caption = 'Allometric parameters, a and b, for 25 species of *Rediviva* bees')
 ```
 
@@ -119,7 +120,7 @@ legend(1.5, 3.0, legend = levels(beemorph$Taxa), col=col_vector, bty="n", pch=19
 dev.off()
 ```
 
-```{r, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Allometric relationship of leg length against body size in *Rediviva* species"), echo=F}
+```{r staticallometry, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Allometric relationship of leg length against body size in *Rediviva* species"), echo=F}
 knitr::include_graphics("staticallometry.pdf")
 ```
 
@@ -427,13 +428,16 @@ m2 <- lm(log.leg ~ -1 + population_code + population_code:log.body, data=beemorp
 nspecies <- length(unique(beemorph.n$population_code)) # the number of species we have
 intercepts <- exp(m2$coefficients[1:nspecies])
 slopes <- m2$coefficients[(nspecies+1):(nspecies*2)]
-allometries <- data.frame(cbind(intercepts, slopes))
-allometries$lci.intercepts <- exp(confint(m2)[1:nspecies,1])
-allometries$uci.intercepts <- exp(confint(m2)[1:nspecies,2])
-allometries$lci.slopes <- confint(m2)[(nspecies +1):(nspecies*2),1]
-allometries$uci.slopes <- confint(m2)[(nspecies +1):(nspecies*2),2]
+allometries.n <- data.frame(cbind(intercepts, slopes))
+allometries.n$lci.intercepts <- exp(confint(m2)[1:nspecies,1])
+allometries.n$uci.intercepts <- exp(confint(m2)[1:nspecies,2])
+allometries.n$lci.slopes <- confint(m2)[(nspecies +1):(nspecies*2),1]
+allometries.n$uci.slopes <- confint(m2)[(nspecies +1):(nspecies*2),2]
 
-knitr::kable(allometries, digits = 2, caption = 'Allometric parameters, a and b, for 10 populations of *R. neliana* bees')
+rownames(allometries.n) <- substr(rownames(allometries.n), start=16, stop=100)
+
+
+knitr::kable(allometries.n, digits = 2, caption = 'Allometric parameters, a and b, for 10 populations of *R. neliana* bees')
 ```
 
 We fit the models described in equations \ref{eq:allsame} to \ref{eq:varslope} to the *R. neliana* data:
@@ -560,8 +564,6 @@ The coefficient estimating the difference between the evolutionary and static al
 
 # Factors potentially explaining variation in allometric relationships
 
-**To do: this section needs to account for phylogeny**
-
 For all species except *R. neliana*, the allometric exponent (slope) was estimated to be smaller than one. And when we considered within-population allometry for *R. neliana*, this was also true for all populations of that species. An allometric exponent $<1$ implies that small individuals have relatively long legs for their size and large individuals have relatively short legs for their size. What are the selective forces acting on this relationship and what could explain the variation among species -- and in the case of *R. neliana*, variation among population -- in these allometric parameters?
 
 These bees collect oil from flowers using their forelegs, so spur length of the flowers from which these bees collect the oil is a candidate environmental driver likely to act as selective force.
@@ -610,6 +612,30 @@ summary(m10)
 ```
 
 The variance of the random intercepts decreased from `r varcomp(m9)[[1]]` in Model `m9` to `r varcomp(m10)[[1]]` in Model `m10` and spur length therefore explained `r ((varcomp(m9)[[1]] - varcomp(m10)[[1]])/varcomp(m9)[[1]])*100`% of the variance in the intercept among species.
+
+The analysis above does not account for non-independence among species due to phylogeny. We next examine whether the parameters of the species-specific allometric relationship estimated earlier (Table \ref{tab:alloparms}) are related to spur length whil accounting for phylogeny.
+
+```{r}
+beetree <- read.tree("Rediviva simplified treeUSE.nex")
+plot(beetree)
+```
+
+```{r}
+allometries$spur_length <- aggregate(beemorph$spur_length, by=list(beemorph$Taxa), mean)$x
+rownames(allometries) <- paste("Rediviva_", substr(rownames(allometries), 10,100), sep="")
+name.check(beetree, allometries)
+```
+
+```{r}
+names.remove <- name.check(beetree, allometries)$data_not_tree 
+allometries.r <- allometries[!(rownames(allometries) %in% names.remove),] 
+name.check(beetree, allometries.r)
+```
+
+```{r}
+m11 <- gls(intercepts ~ spur_length, correlation = corPagel(1, phy = beetree,
+    fixed = FALSE), data = allometries.r, method = "ML")
+```
 
 **To do:
 
