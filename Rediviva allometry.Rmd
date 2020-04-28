@@ -32,7 +32,7 @@ We'll need the following R packages:
 
 ```{r libs, message=F}
 library(ape)
-library(phytools)
+library(phylolm)
 library(geiger)
 library(nlme)
 library(RColorBrewer)
@@ -571,9 +571,6 @@ These bees collect oil from flowers using their forelegs, so spur length of the 
 The figure below shows leg length as a function of spur length (using a weighted mean across all plant species each bee species is known to visit). The solid black line is the 1:1 relationship. Colours indicate different species using the same colour scheme as in Figure \ref{fig:evolutionaryallometry}). Leg length tracks spur length with most species having legs at least as long as the spur length of the flowers they visit.
 
 ```{r, echo=F}
-# leg.sp <- aggregate(beemorph.r$leg_length, by=list(beemorph.r$Taxa), mean)$x
-# spur.sp <- aggregate(beemorph.r$spur_length, by=list(beemorph.r$Taxa), mean)$x
-# plot(leg.sp ~ spur.sp)
 plot(leg_length ~ spur_length, data=beemorph.r, col=col_vector[SPECIES.no], axes=F, xlab="Spur length [mm]", ylab="Leg length [mm]")
 axis(1)
 axis(2, las=1)
@@ -615,10 +612,14 @@ The variance of the random intercepts decreased from `r varcomp(m9)[[1]]` in Mod
 
 The analysis above does not account for non-independence among species due to phylogeny. We next examine whether the parameters of the species-specific allometric relationship estimated earlier (Table \ref{tab:alloparms}) are related to spur length whil accounting for phylogeny.
 
+A phylogeny published by Kahnt et al [-@Kahndt] included most of the species in our sample. Here is the phylogenetic tree:
+
 ```{r}
 beetree <- read.tree("Rediviva simplified treeUSE.nex")
 plot(beetree)
 ```
+
+We first check which species occur in our data set but not the tree and vice versa:
 
 ```{r}
 allometries$spur_length <- aggregate(beemorph$spur_length, by=list(beemorph$Taxa), mean)$x
@@ -626,20 +627,69 @@ rownames(allometries) <- paste("Rediviva_", substr(rownames(allometries), 10,100
 name.check(beetree, allometries)
 ```
 
+Seven of the species in our data set do not occur in the tree and we remove them from further analysis:
+
 ```{r}
 names.remove <- name.check(beetree, allometries)$data_not_tree 
 allometries.r <- allometries[!(rownames(allometries) %in% names.remove),] 
 name.check(beetree, allometries.r)
 ```
 
+Next, we use phylogenetic least squares models to examine whether the allometric intercept and slope are related to spur length. We use a number of different evolutionary models, including Brownian motion, an Ornstein-Uhlenbeck process and Pagel's $\lambda$.
+
 ```{r}
-m11 <- gls(intercepts ~ spur_length, correlation = corPagel(1, phy = beetree,
-    fixed = FALSE), data = allometries.r, method = "ML")
+m11.bm <- phylolm(intercepts ~ spur_length, phy = beetree, model = "BM", data = allometries.r)
+m11.OUr <- phylolm(intercepts ~ spur_length, phy = beetree, model = "OUrandomRoot", data = allometries.r)
+m11.OUf <- phylolm(intercepts ~ spur_length, phy = beetree, model = "OUfixedRoot", data = allometries.r)
+m11.lambda <- phylolm(intercepts ~ spur_length, phy = beetree, model = "lambda", data = allometries.r)
+```
+
+The estimated relationship between allometric intercept and spur length was similar across the models assuming different evolutionary processes. All models estimated a positive relationship with a confidence interval that excluded zero. This analysis therefore agrees with the multi-level analysis above and suggests that species that visit flowers with longer spurs have longer forelegs.
+
+```{r, echo=F}
+tab <- data.frame(Model = c('m11.bm', 'm11.OUr', 'm11.OUf', 'm11.lambda'), beta = c(coefficients(m11.bm)[2], coefficients(m11.OUr)[2],coefficients(m11.OUf)[2],coefficients(m11.lambda)[2]), lci = c(confint(m11.bm)[2,1], confint(m11.OUf)[2,1],confint(m11.OUr)[2,1],confint(m11.lambda)[2,1]), uci = c(confint(m11.bm)[2,2], confint(m11.OUr)[2,2],confint(m11.OUf)[2,2],confint(m11.lambda)[2,2]))
+
+knitr::kable(tab, digits = 2)
+```
+
+Is the allometric slope also related to spur length?
+
+```{r}
+m12.bm <- phylolm(slopes ~ spur_length, phy = beetree, model = "BM", data = allometries.r)
+m12.OUr <- phylolm(slopes ~ spur_length, phy = beetree, model = "OUrandomRoot", data = allometries.r)
+m12.OUf <- phylolm(slopes ~ spur_length, phy = beetree, model = "OUfixedRoot", data = allometries.r)
+m12.lambda <- phylolm(slopes ~ spur_length, phy = beetree, model = "lambda", data = allometries.r)
+```
+
+All models agreed that there is no evidence for a relationship between allometric slope and spur length. The estimates agreed across models with different evolutionary processes and the confidence interval for the slope of the relationship between allometric slopes and spur length included zero.
+
+```{r, echo=F}
+tab <- data.frame(Model = c('m12.bm', 'm12.OUr', 'm12.OUf', 'm12.lambda'), beta = c(coefficients(m12.bm)[2], coefficients(m12.OUr)[2],coefficients(m12.OUf)[2],coefficients(m12.lambda)[2]), lci = c(confint(m12.bm)[2,1], confint(m12.OUf)[2,1],confint(m12.OUr)[2,1],confint(m12.lambda)[2,1]), uci = c(confint(m12.bm)[2,2], confint(m12.OUr)[2,2],confint(m12.OUf)[2,2],confint(m12.lambda)[2,2]))
+
+knitr::kable(tab, digits = 2)
+```
+
+
+```{r, echo=F}
+allometries.r$SPECIES.no <- as.numeric(as.factor(rownames(allometries.r)))
+
+op <- par(mfrow=c(1,3))
+plot(intercepts ~ spur_length, data=allometries.r, col=col_vector[SPECIES.no], axes=F, xlab="Spur length [mm]", ylab="Allometric intercept", pch=19)
+axis(1)
+axis(2, las=1)
+abline(m11.OUr)
+
+plot(slopes ~ spur_length, data=allometries.r, col=col_vector[SPECIES.no], axes=F, xlab="Spur length [mm]", ylab="Allometric slope", pch=19)
+axis(1)
+axis(2, las=1)
+abline(m12.OUr)
+
+plot(slopes ~ spur_length, data=allometries.r,type='n',axes=F, ann=F)
+legend(0,1, legend = levels(as.factor(rownames(allometries.r))), col=col_vector, bty="n", pch=19, cex=0.9, text.font=3)
+
 ```
 
 **To do:
-
-- examine how allometric slopes vary in relation to spur length
 
 - add Jonathan's figures on variability in spur length**
 
