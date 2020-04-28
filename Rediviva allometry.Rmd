@@ -562,7 +562,7 @@ knitr::kable(tab, digits = 2)
 
 The coefficient estimating the difference between the evolutionary and static allometric slopes is positive, indicating that the evolutionary allometric slope is steeper than the static allometric slope but the difference is much smaller than in the comparison across species and Models `m7` and `m8` both yielded a confidence interval that included 0.
 
-# Factors potentially explaining variation in allometric relationships
+# Is variation in allometric relationships explained by spur length of the host flowers?
 
 For all species except *R. neliana*, the allometric exponent (slope) was estimated to be smaller than one. And when we considered within-population allometry for *R. neliana*, this was also true for all populations of that species. An allometric exponent $<1$ implies that small individuals have relatively long legs for their size and large individuals have relatively short legs for their size. What are the selective forces acting on this relationship and what could explain the variation among species -- and in the case of *R. neliana*, variation among population -- in these allometric parameters?
 
@@ -577,7 +577,7 @@ axis(2, las=1)
 abline(0,1)
 ```
 
-We slightly re-parameterise the model described in Equation \ref{eq:varslope} by subtracting the overall mean log body length ($\beta_{..}$) from the species-specific mean log body length ($\beta_{.j}$) so that the intercept estimates the log leg length for a bee of average body length.
+We slightly re-parameterise the model described in Equation \ref{eq:varslope} by subtracting the overall mean log body length ($\beta_{..}$) from the species-specific mean log body length ($\beta_{.j}$) so that the intercept estimates the log leg length for a bee of average log body length.
 
 \begin{equation} 
 l_{ij} = (\beta_0 + \mu_{0j}) + (\beta_w + \mu_{wj})(b_{ij} - b_{.j}) + \beta_b (b_{.j}-b_{..})  + \epsilon_{ij} 
@@ -635,7 +635,7 @@ allometries.r <- allometries[!(rownames(allometries) %in% names.remove),]
 name.check(beetree, allometries.r)
 ```
 
-Next, we use phylogenetic least squares models to examine whether the allometric intercept and slope are related to spur length. We use a number of different evolutionary models, including Brownian motion, an Ornstein-Uhlenbeck process and Pagel's $\lambda$.
+Next, we use phylogenetic least squares models to examine whether the allometric intercept and slope are related to spur length. We use a number of different evolutionary models, including Brownian motion, an Ornstein-Uhlenbeck model with an ancestral state to be estimated at the root, an Ornstein-Uhlenbeck model with the ancestral state at the root having a stationary distribution and Pagel's $\lambda$.
 
 ```{r}
 m11.bm <- phylolm(intercepts ~ spur_length, phy = beetree, model = "BM", data = allometries.r)
@@ -649,7 +649,7 @@ The estimated relationship between allometric intercept and spur length was simi
 ```{r, echo=F}
 tab <- data.frame(Model = c('m11.bm', 'm11.OUr', 'm11.OUf', 'm11.lambda'), beta = c(coefficients(m11.bm)[2], coefficients(m11.OUr)[2],coefficients(m11.OUf)[2],coefficients(m11.lambda)[2]), lci = c(confint(m11.bm)[2,1], confint(m11.OUf)[2,1],confint(m11.OUr)[2,1],confint(m11.lambda)[2,1]), uci = c(confint(m11.bm)[2,2], confint(m11.OUr)[2,2],confint(m11.OUf)[2,2],confint(m11.lambda)[2,2]))
 
-knitr::kable(tab, digits = 2)
+knitr::kable(tab, digits = 2, caption = 'Relationship between the allometric intercept and spur length of the host flower for 18 species of *Rediviva* bees. Beta is the estimated slope of this relationship and the other columns give the lower and upper 95% confidence limit.')
 ```
 
 Is the allometric slope also related to spur length?
@@ -666,13 +666,14 @@ All models agreed that there is no evidence for a relationship between allometri
 ```{r, echo=F}
 tab <- data.frame(Model = c('m12.bm', 'm12.OUr', 'm12.OUf', 'm12.lambda'), beta = c(coefficients(m12.bm)[2], coefficients(m12.OUr)[2],coefficients(m12.OUf)[2],coefficients(m12.lambda)[2]), lci = c(confint(m12.bm)[2,1], confint(m12.OUf)[2,1],confint(m12.OUr)[2,1],confint(m12.lambda)[2,1]), uci = c(confint(m12.bm)[2,2], confint(m12.OUr)[2,2],confint(m12.OUf)[2,2],confint(m12.lambda)[2,2]))
 
-knitr::kable(tab, digits = 2)
+knitr::kable(tab, digits = 2, caption = 'Relationship between the allometric slope and spur length of the host flower for 18 species of *Rediviva* bees. Beta is the estimated slope of this relationship and the other columns give the lower and upper 95% confidence limit.')
 ```
 
 
-```{r, echo=F}
+```{r, echo=F, message=FALSE, results="hide"}
 allometries.r$SPECIES.no <- as.numeric(as.factor(rownames(allometries.r)))
 
+pdf("allometry_spurlength.pdf", 7,3)
 op <- par(mfrow=c(1,3))
 plot(intercepts ~ spur_length, data=allometries.r, col=col_vector[SPECIES.no], axes=F, xlab="Spur length [mm]", ylab="Allometric intercept", pch=19)
 axis(1)
@@ -686,12 +687,18 @@ abline(m12.OUr)
 
 plot(slopes ~ spur_length, data=allometries.r,type='n',axes=F, ann=F)
 legend(0,1, legend = levels(as.factor(rownames(allometries.r))), col=col_vector, bty="n", pch=19, cex=0.9, text.font=3)
-
+dev.off()
 ```
 
-**To do:
+```{r allometry_spurlength, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Relationship of allometric parameters to spur length of the host plant for Rediviva bee species"), echo=F}
+knitr::include_graphics("allometry_spurlength.pdf")
+```
 
-- add Jonathan's figures on variability in spur length**
+## Can variation in spur length 
+
+## Same as above but for R. neliana only ??
+
+
 
 
 # References
