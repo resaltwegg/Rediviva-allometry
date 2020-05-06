@@ -3,6 +3,8 @@ title: "Analysis for Melin et al: 'Allometric relationships shape foreleg evolut
 author: "Annalie Melin, Res Altwegg, John C. Manning and Jonathan F. Colville"
 date: "09/04/2020"
 output: pdf_document
+bibliography: rediviva.bib
+csl: evolution.csl
 ---
 
 ```{r setup, include=FALSE}
@@ -42,7 +44,7 @@ library(RColorBrewer)
 beemorph <- read.csv("Rediviva_allom_dataset.csv")
 ```
 
-The data set consists of data on `r dim(beemorph)[1]` individual bees belonging to `r length(unique(beemorph$Taxa))` species in the genus *Rediviva*. Each row corresponds to an individual bee and the next two columns give total leg length and a linear measure of body size (inter-tegula distance). The column 'spur_length' contains the average spur length of the flowers of the plant species this particular bee species is known to pollinate. For two species, *R.neliana* and *R.pallidula*, we have enough data to be able to distinguish between populations. The columns 'Taxa' and 'population_spur_length' identify the population an individual bee came from, for these two species, and the spur length of the flowers that they pollinate in these particular locations.
+The data set consists of data on `r dim(beemorph)[1]` individual bees belonging to `r length(unique(beemorph$Taxa))` species in the genus *Rediviva*. Each row corresponds to an individual bee and the next two columns give total leg length and a linear measure of body size (inter-tegula distance). The column 'spur_length' contains the average spur length of the flowers of the plant species this particular bee species is known to visit For two species, *R.neliana* and *R.pallidula*, we have enough data to be able to distinguish between populations. The columns 'Taxa' and 'population_spur_length' identify the population an individual bee came from, for these two species, and the spur length of the flowers that they visit in these particular locations.
 
 ```{r dataprep}
 beemorph <- read.csv("Rediviva_allom_dataset.csv")
@@ -85,12 +87,12 @@ allometries$lci.slopes <- confint(m2)[(nspecies +1):(nspecies*2),1]
 allometries$uci.slopes <- confint(m2)[(nspecies +1):(nspecies*2),2]
 ```
 
-The models above fitted separate allometric curves to each species, i.e. $ln(leg) = ln(a) + b \times ln(body)$. The slopes estimate $b$ for each species and exponentiating the intercepts estimates $a$ for each species. The table below gives the parameter estimates with confidence intervals and Figure \ref{fig:staticallometry} plots the fitted relationships.
+The models above fitted separate allometric curves to each species, i.e. $ln(leg) = ln(a) + b \times ln(body)$. The slopes estimate $b$ for each species and exponentiating the intercepts estimates $a$ for each species. Table \ref{tab:alloparms} below gives the parameter estimates with confidence intervals and Figure \ref{fig:staticallometry} plots the fitted relationships.
 
 
 ```{r alloparms, echo=F}
 rownames(allometries) <- substr(rownames(allometries), start=5, stop=100)
-knitr::kable(allometries, digits = 2, caption = 'Allometric parameters, a and b, for 25 species of *Rediviva* bees')
+knitr::kable(allometries, digits = 2, caption = 'Allometric parameters, a and b, for 25 species of \\textit{Rediviva} bees')
 ```
 
 ```{r, echo=F, message=FALSE, results="hide"}
@@ -120,7 +122,7 @@ legend(1.5, 3.0, legend = levels(beemorph$Taxa), col=col_vector, bty="n", pch=19
 dev.off()
 ```
 
-```{r staticallometry, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Allometric relationship of leg length against body size in *Rediviva* species"), echo=F}
+```{r staticallometry, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Allometric relationship of leg length against body size in \\textit{Rediviva} species"), echo=F}
 knitr::include_graphics("staticallometry.pdf")
 ```
 
@@ -155,14 +157,17 @@ l_{ij} = (\beta_0 + \mu_{0j}) + (\beta_w + \mu_{wj})(b_{ij} - b_{.j}) + \beta_b 
 The code chunk below calculates $b_{.j}$ and $b_{ij} - b_{.j}$:
 
 ```{r}
-mean.body <- aggregate(beemorph$log.body, by = list(beemorph$Taxa), FUN=mean)  # calculate mean body length per species
+# calculate mean body length per species:
+mean.body <- aggregate(beemorph$log.body, by = list(beemorph$Taxa), FUN=mean)  
 colnames(mean.body) <- c("Taxa", "mean.body")
 
-beemorph <- merge(beemorph, mean.body, by.x = "Taxa", by.y = "Taxa", all.x=T)  # add mean body length back onto data frame
-beemorph$diff.body <- beemorph$log.body - beemorph$mean.body  # difference in body length within species
+# add mean body length back onto data frame:
+beemorph <- merge(beemorph, mean.body, by.x = "Taxa", by.y = "Taxa", all.x=T)  
+# difference in body length within species:
+beemorph$diff.body <- beemorph$log.body - beemorph$mean.body  
 ```
 
-The evolutionary allometry describes how a trait scales with body size across species. The figure above shows that *R. gigas* is a clear outlier in that respect. It is the largest bee in this data set but has average leg length. As it also is ecologically quite different from the other species, we exclude it from the main analysis but for completeness report results also with this species included.
+The evolutionary allometry describes how a trait scales with body size across species. From Figure \ref{fig:staticallometry} it is clear that *R. gigas* is an outlier in that respect. It is the largest bee in this data set but has average leg length. As it also is ecologically quite different from the other species, we exclude it from the main analysis but for completeness report results also with this species included.
 
 ```{r}
 beemorph.r <- beemorph[beemorph$Taxa !="Rediviva gigas",]
@@ -180,11 +185,12 @@ summary(m3)
 m4 <- lme(log.leg ~ diff.body + mean.body, random =~1|Taxa, data=beemorph.r) # random intercept
 summary(m4)
 
-m5 <- lme(log.leg ~ diff.body + mean.body, random =~diff.body|Taxa, data=beemorph.r) # random intercept and slope
+m5 <- lme(log.leg ~ diff.body + mean.body, random =~diff.body|Taxa, data=beemorph.r) 
+   # random intercept and slope
 summary(m5)
 ```
 
-The residual standard error decreases markedly, from `r summary(m3)$sigma` in Model `m3` to `r sqrt(varcomp(m4)[[2]])` in Model `m4`, when we included random intercepts. Including random slopes reduced the residual standard error to `r sqrt(varcomp(m5)[[2]])` in Model `m5`.
+The residual standard error decreases markedly, from `r round(summary(m3)$sigma, 3)` in Model `m3` to `r round(sqrt(varcomp(m4)[[2]]),3)` in Model `m4`, when we included random intercepts. Including random slopes reduced the residual standard error to `r round(sqrt(varcomp(m5)[[2]]),3)` in Model `m5`.
 
 Models `m4` and `m5` both have the same fixed-effects structure and we can therefore compare them using Akaike's Information Criterion:
 
@@ -192,11 +198,11 @@ Models `m4` and `m5` both have the same fixed-effects structure and we can there
 AIC(m4, m5) 
 ```
 
-According to AIC, Model `m5` is clearly better. The variances for the intercepts and slops estimated by model `m5` are of similar magnitude (intercepts: `r VarCorr(m5)[1]`; slopes: `r VarCorr(m5)[2]`) further suggesting that there is considerable variation in the allometric slope parameter among species.
+According to AIC, Model `m5` is clearly better. The variances for the intercepts and slops estimated by model `m5` are of similar magnitude (intercepts: `r round(as.numeric(VarCorr(m5)[1]),3)`; slopes: `r round(as.numeric(VarCorr(m5)[2]),3)`) further suggesting that there is considerable variation in the allometric slope parameter among species.
 
 ```{r, echo=F, message=FALSE, results="hide"}
 pdf("evolutionaryallometry.pdf",width = 14, height = 5)
-par(mar=c(4,1,1,1), mfrow=c(1,3), oma=c(0,5,0,0))
+par(mar=c(4,1,1,1), mfrow=c(1,4), oma=c(0,5,0,0))
 
 # m3
 plot(log.leg ~ log.body, data=beemorph.r, col=col_vector[SPECIES.no], axes=F, 
@@ -218,15 +224,11 @@ y <- coefficients(m3)[1] + coefficients(m3)[3] * x
 lines(y~x)
 
 
-#legend(1.5, 3.0, legend = levels(beemorph.r$Taxa), col=col_vector, bty="n", pch=19, cex=0.9, text.font=3)
-
 # m4
 plot(log.leg ~ log.body, data=beemorph.r, col=col_vector[SPECIES.no], axes=F, 
      xlim=c(min(beemorph.r$log.body),max(beemorph.r$log.body)), xlab = "", ylab = "")
 mtext(expression ('log' * ' body size (ITD)'), side=1, line=2.4)
-#mtext(expression ('log' * ' foreleg length'), side=2, line=2.4)
 axis(1, at=seq(0.8, 1.5, 0.2))
-axis(2,las=1)
 
 # plotting within-species (static) allometry
 for (i in 1:max(beemorph.r$SPECIES.no)) lines(predict(m4)[SPECIES.no==i] ~ log.body[SPECIES.no==i], data=beemorph.r, col=col_vector[i])
@@ -239,15 +241,11 @@ x <- seq(min(beemorph.r$log.body),max(beemorph.r$log.leg),length=50) # adding li
 y <- fixef(m4)[1] + fixef(m4)[3] * x
 lines(y~x)
 
-#legend(1.5, 3.0, legend = levels(beemorph.r$Taxa), col=col_vector, bty="n", pch=19, cex=0.9, text.font=3)
-
 # m5
 plot(log.leg ~ log.body, data=beemorph.r, col=col_vector[SPECIES.no], axes=F, 
-     xlim=c(min(beemorph.r$log.body),max(beemorph.r$log.body)+0.4), xlab = "", ylab = "")
+     xlim=c(min(beemorph.r$log.body),max(beemorph.r$log.body)), xlab = "", ylab = "")
 mtext(expression ('log' * ' body size (ITD)'), side=1, line=2.4)
-#mtext(expression ('log' * ' foreleg length'), side=2, line=2.4)
 axis(1, at=seq(0.8, 1.5, 0.2))
-axis(2,las=1)
 
 # plotting within-species (static) allometry
 for (i in 1:max(beemorph.r$SPECIES.no)) lines(predict(m5)[SPECIES.no==i] ~ log.body[SPECIES.no==i], data=beemorph.r, col=col_vector[i])
@@ -260,14 +258,34 @@ x <- seq(min(beemorph.r$log.body),max(beemorph.r$log.leg),length=50) # adding li
 y <- fixef(m5)[1] + fixef(m5)[3] * x
 lines(y~x)
 
-legend(1.5, 3.0, legend = levels(beemorph.r$Taxa), col=col_vector, bty="n", pch=19, cex=0.9, text.font=3)
+# legend panel
+plot(log.leg ~ log.body, data=beemorph.r,type='n',axes=F, ann=F)
+legend(0.7, 3.0, legend = levels(beemorph.r$Taxa), col=col_vector, bty="n", pch=19, cex=1.2, text.font=3)
 
 dev.off()
 ```
 
-```{r evolutionaryallometry, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Allometric relationship of leg length against body size in *Rediviva* species. The black line shows the fitted evolutionary allometric relationship."), echo=F}
+```{r evolutionaryallometry, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Allometric relationship of leg length against body size in \\textit{Rediviva} species. The black line shows the fitted evolutionary allometric relationship."), echo=F}
 knitr::include_graphics("evolutionaryallometry.pdf")
 ```
+
+Does the evolutionary allometric slope differ from isometry, i.e. does $\beta_b$ differ from 1? We can easily test this for the estimates of $\beta_b$ from Models `m3` to `m5` against the null hypothesis $H_0: \beta_b = 1$.
+
+```{r}
+# m3
+(tstat.m3 <-(coefficients(m3)[3]-1)/sqrt(vcov(m3)[3,3])) # t statistic
+pt(tstat.m3,df=summary(m3)$df[2], lower.tail = F)*2 # p value (2-sided alternative)
+
+# m4
+(tstat.m4 <-(summary(m4)$tTable[3,1]-1)/summary(m4)$tTable[3,2]) # t statistic
+pt(tstat.m4,df=summary(m4)$tTable[3,3], lower.tail = F)*2 # p value (2-sided alternative)
+
+# m5
+(tstat.m5 <-(summary(m5)$tTable[3,1]-1)/summary(m5)$tTable[3,2]) # t statistic
+pt(tstat.m5,df=summary(m5)$tTable[3,3], lower.tail = F)*2 # p value (2-sided alternative)
+```
+
+According to Models `m3` and `m5`, the evolutionary allometric slope is significantly different from 1, whereas according to Model `m4`, evidence against $H_0$ is not very strong. We note that Model `m5` was best supported by the data and therefore conclude that --on balance -- the data support the notion that the evolutionary allometric slope is larger than 1.
 
 ## Is variation in slope driven by *R. neliana*?
 
@@ -285,7 +303,7 @@ m4 <- lme(log.leg ~ diff.body + mean.body, random =~1|Taxa, data=beemorph.rr) # 
 m5 <- lme(log.leg ~ diff.body + mean.body, random =~diff.body|Taxa, data=beemorph.rr) # random intercept and slope
 
 pdf("evolutionaryallometry_withoutNeliana.pdf",width = 14, height = 5)
-par(mar=c(4,1,1,1), mfrow=c(1,3), oma=c(0,5,0,0))
+par(mar=c(4,1,1,1), mfrow=c(1,4), oma=c(0,5,0,0))
 
 # m3
 plot(log.leg ~ log.body, data=beemorph.rr, col=col_vector[SPECIES.no], axes=F, 
@@ -311,9 +329,7 @@ lines(y~x)
 plot(log.leg ~ log.body, data=beemorph.rr, col=col_vector[SPECIES.no], axes=F, 
      xlim=c(min(beemorph.rr$log.body),max(beemorph.rr$log.body)), xlab = "", ylab = "")
 mtext(expression ('log' * ' body size (ITD)'), side=1, line=2.4)
-#mtext(expression ('log' * ' foreleg length'), side=2, line=2.4)
 axis(1, at=seq(0.8, 1.5, 0.2))
-axis(2,las=1)
 
 # plotting within-species (static) allometry
 for (i in 1:max(beemorph.rr$SPECIES.no)) lines(predict(m4)[SPECIES.no==i] ~ log.body[SPECIES.no==i], data=beemorph.rr, col=col_vector[i])
@@ -328,11 +344,9 @@ lines(y~x)
 
 # m5
 plot(log.leg ~ log.body, data=beemorph.rr, col=col_vector[SPECIES.no], axes=F, 
-     xlim=c(min(beemorph.rr$log.body),max(beemorph.rr$log.body)+0.4), xlab = "", ylab = "")
+     xlim=c(min(beemorph.rr$log.body),max(beemorph.rr$log.body)), xlab = "", ylab = "")
 mtext(expression ('log' * ' body size (ITD)'), side=1, line=2.4)
-#mtext(expression ('log' * ' foreleg length'), side=2, line=2.4)
 axis(1, at=seq(0.8, 1.5, 0.2))
-axis(2,las=1)
 
 # plotting within-species (static) allometry
 for (i in 1:max(beemorph.rr$SPECIES.no)) lines(predict(m5)[SPECIES.no==i] ~ log.body[SPECIES.no==i], data=beemorph.rr, col=col_vector[i])
@@ -345,14 +359,16 @@ x <- seq(min(beemorph.rr$log.body),max(beemorph.rr$log.leg),length=50) # adding 
 y <- fixef(m5)[1] + fixef(m5)[3] * x
 lines(y~x)
 
-legend(1.5, 3.0, legend = levels(beemorph.rr$Taxa), col=col_vector, bty="n", pch=19, cex=0.9, text.font=3)
+# legend panel
+plot(log.leg ~ log.body, data=beemorph.rr,type='n',axes=F, ann=F)
+legend(0.8, 3.0, legend = levels(beemorph.rr$Taxa), col=col_vector, bty="n", pch=19, cex=1.2, text.font=3)
 
 dev.off()
 ```
 
-Re-running the analyses in the previous section without *R. neliana*, we find that the AIC for Model `m4` is `r AIC(m4)` and for Model `m5` `r AIC(m5)`. So, according to AIC, Model `m5` is still clearly better. While the variance for the slopes decreased, the variances for the intercepts and slops estimated by model `m5` are still of similar magnitude (intercepts: `r VarCorr(m5)[1]`; slopes: `r VarCorr(m5)[2]`) further suggesting that there is considerable variation in the allometric slope parameter among species that is not entirely explained by *R. neliana* being different from the other species.
+Re-running the analyses in the previous section without *R. neliana*, we find that the AIC for Model `m4` is `r round(AIC(m4),2)` and for Model `m5` `r round(AIC(m5),2)`. So, according to AIC, Model `m5` is still clearly better. While the variance for the slopes decreased compared to the analysis that included *R. neliana*, the variances for the intercepts and slops estimated by model `m5` are still of similar magnitude (intercepts: `r round(as.numeric(VarCorr(m5)[1]),3)`; slopes: `r round(as.numeric(VarCorr(m5)[2]),3)`) further suggesting that there is considerable variation in the allometric slope parameter among species that is not entirely explained by *R. neliana* being different from the other species.
 
-```{r, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Allometric relationship of leg length against body size in *Rediviva* species, excluding *R. neliana*. The black line shows the fitted evolutionary allometric relationship."), echo=F}
+```{r, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Allometric relationship of leg length against body size in \\textit{Rediviva} species, excluding \\textit{R. neliana}. The black line shows the fitted evolutionary allometric relationship."), echo=F}
 knitr::include_graphics("evolutionaryallometry_withoutNeliana.pdf")
 ```
 
@@ -382,7 +398,8 @@ m6 <- lm(log.leg ~ log.body + mean.body, data=beemorph.r) # static allometry sam
 
 m7 <- lme(log.leg ~ log.body + mean.body, random =~1|Taxa, data=beemorph.r) # random intercept
 
-m8 <- lme(log.leg ~ log.body + mean.body, random =~diff.body|Taxa, data=beemorph.r) # random intercept and slope
+m8 <- lme(log.leg ~ log.body + mean.body, random =~diff.body|Taxa, data=beemorph.r) 
+  # random intercept and slope
 ```
 
 Note that Models `m6` to `m8` are just reparameterisations of models `m3` to `m5` and thus identical to those in terms of their fit to the data. The estimated difference between the evolutionary and static allometric slopes (delta $=\beta_b - \beta_w$) with confidence intervals are:
@@ -395,11 +412,29 @@ knitr::kable(tab, digits = 2)
 
 The coefficient estimating the difference between the evolutionary and static allometric slopes is positive, indicating that the evolutionary allometric slope is steeper than the static allometric support. The estimates broadly agree across models with but Model `m7` yielded a wide confidence interval that included 0.
 
-\pagebreak
 
 # Do these results change when we include *R. gigas*?
 
 *R. gigas* was a clear outlier in the general relationship between body size and leg length across species and we therefore excluded *R. gigas* above. Here, we repeat the analysis with *R. gigas* included.
+
+
+```{r, echo=F, message=FALSE, results="hide"}
+
+m3 <- lm(log.leg ~ diff.body + mean.body, data=beemorph) # static allometry same across species
+m4 <- lme(log.leg ~ diff.body + mean.body, random =~1|Taxa, data=beemorph) # random intercept
+m5 <- lme(log.leg ~ diff.body + mean.body, random =~diff.body|Taxa, data=beemorph) # random intercept and slope
+
+# m3
+(tstat.m3 <-(coefficients(m3)[3]-1)/sqrt(vcov(m3)[3,3])) # t statistic
+
+# m4
+(tstat.m4 <-(summary(m4)$tTable[3,1]-1)/summary(m4)$tTable[3,2]) # t statistic
+
+# m5
+(tstat.m5 <-(summary(m5)$tTable[3,1]-1)/summary(m5)$tTable[3,2]) # t statistic
+```
+
+We refit Models `m3` to `m5` to test whether the evolutionary allometric slope differs from isometry. The estimated evolutionary slopes, i.e. $\beta_b$, are now `r round(coefficients(m3)[3],3)` (se = `r round(sqrt(vcov(m3)[3,3]),3)`, t = `r round(tstat.m3,3)`, P = `r round(pt(tstat.m3,df=summary(m3)$df[2], lower.tail = F)*2,3)` testing $H_0: \beta_b = 1$) for Model `m3`, `r round(summary(m4)$tTable[3,1],3)` (se = `r round(summary(m4)$tTable[3,2],3)`, t = `r round(tstat.m4,3)`, P = `r round(pt(tstat.m4,df=summary(m4)$tTable[3,3], lower.tail = F)*2,3)` testing $H_0: \beta_b = 1$) for Model `m4` and `r round(summary(m5)$tTable[3,1],3)` (se = `r round(summary(m5)$tTable[3,2],3)`, t = `r round(tstat.m5,3)`, P = `r round(pt(tstat.m5,df=summary(m5)$tTable[3,3], lower.tail = F)*2,3)` testing $H_0: \beta_b = 1$) for Model `m5`. Only Model `m3`, which was poorly supported by the data, suggests some evidence against $H_0$ and therefore conclude that --on balance -- when including *R. gigas*, we have no clear evidence that the evolutionary allometric slope differs from 1.
 
 We re-fitted models `m6` to `m8` including *R. gigas* and the table below gives the estimated difference between the evolutionary and static allometric slopes (delta $=\beta_b - \beta_w$) with confidence intervals:
 
@@ -417,17 +452,11 @@ tab <- data.frame(Model = c('m6', 'm7', 'm8'), delta = c(coefficients(m6)[3], in
 knitr::kable(tab, digits = 2)
 ```
 
-Including *R. gigas*, the analysis still suggested that the evultionary allometric is steeper than the static allometric slope but the difference was smaller and the confidence interval overlapped zero for Models `m7` and `m8`. Figure \ref{fig:withgigas} below shows, however, that the fitted evolutionary allometric line is a poor description of the general relationship between log body size and log leg length across species. 
+Including *R. gigas*, the analysis still suggested that the evultionary allometric is steeper than the static allometric slope but the difference was smaller and the confidence interval overlapped zero for Models `m7` and `m8`. In conclusion, including the outlier species *R. gigas* affects the results presented earlier, albeit not the general pattern. Figure \ref{fig:withgigas} below shows, however, that the fitted evolutionary allometric line is a poor description of the general relationship between log body size and log leg length across species. 
 
 ```{r, echo=F, message=FALSE, results="hide"}
-m3 <- lm(log.leg ~ diff.body + mean.body, data=beemorph) # static allometry same across species
-
-m4 <- lme(log.leg ~ diff.body + mean.body, random =~1|Taxa, data=beemorph) # random intercept
-
-m5 <- lme(log.leg ~ diff.body + mean.body, random =~diff.body|Taxa, data=beemorph) # random intercept and slope
-
 pdf("evolutionaryallometry_withgigas.pdf",width = 14, height = 5)
-par(mar=c(4,1,1,1), mfrow=c(1,3), oma=c(0,5,0,0))
+par(mar=c(4,1,1,1), mfrow=c(1,4), oma=c(0,5,0,0))
 
 # m3
 plot(log.leg ~ log.body, data=beemorph, col=col_vector[SPECIES.no], axes=F, 
@@ -454,7 +483,6 @@ plot(log.leg ~ log.body, data=beemorph, col=col_vector[SPECIES.no], axes=F,
      xlim=c(min(beemorph$log.body),max(beemorph$log.body)), xlab = "", ylab = "")
 mtext(expression ('log' * ' body size (ITD)'), side=1, line=2.4)
 axis(1, at=seq(0.8, 1.5, 0.2))
-axis(2,las=1)
 
 # plotting within-species (static) allometry
 for (i in 1:max(beemorph$SPECIES.no)) lines(predict(m4)[SPECIES.no==i] ~ log.body[SPECIES.no==i], data=beemorph, col=col_vector[i])
@@ -469,10 +497,9 @@ lines(y~x)
 
 # m5
 plot(log.leg ~ log.body, data=beemorph, col=col_vector[SPECIES.no], axes=F, 
-     xlim=c(min(beemorph$log.body),max(beemorph$log.body)+0.4), xlab = "", ylab = "")
+     xlim=c(min(beemorph$log.body),max(beemorph$log.body)), xlab = "", ylab = "")
 mtext(expression ('log' * ' body size (ITD)'), side=1, line=2.4)
 axis(1, at=seq(0.8, 1.5, 0.2))
-axis(2,las=1)
 
 # plotting within-species (static) allometry
 for (i in 1:max(beemorph$SPECIES.no)) lines(predict(m5)[SPECIES.no==i] ~ log.body[SPECIES.no==i], data=beemorph, col=col_vector[i])
@@ -485,18 +512,127 @@ x <- seq(min(beemorph$log.body),max(beemorph$log.leg),length=50) # adding line f
 y <- fixef(m5)[1] + fixef(m5)[3] * x
 lines(y~x)
 
-legend(1.5, 3.0, legend = levels(beemorph$Taxa), col=col_vector, bty="n", pch=19, cex=0.9, text.font=3)
+# legend panel
+plot(log.leg ~ log.body, data=beemorph,type='n',axes=F, ann=F)
+legend(0.7, 3.0, legend = levels(beemorph$Taxa), col=col_vector, bty="n", pch=19, cex=1.2, text.font=3)
 
 dev.off()
 ```
 
 
-```{r withgigas, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Allometric relationship of leg length against body size in *Rediviva* species, including *R. gigas*. The black line shows the fitted evolutionary allometric relationship."), echo=F}
+```{r withgigas, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Allometric relationship of leg length against body size in \\textit{Rediviva} species, including \\textit{R. gigas}. The black line shows the fitted evolutionary allometric relationship."), echo=F}
 knitr::include_graphics("evolutionaryallometry_withgigas.pdf")
 ```
 
+## Does accounting for phylogeny affect our results?
+
+Our analyses above assumed independent residuals but clearly, the species are phylogenetically related and this relatedness could cause non-independence in the data. Our maximum likelihood estimates of the parameters of the static allometric relationships in Table \ref{tab:alloparms} should not be affected because we estimated separate parameters for each species. However, our estimate of the evolutionary allometric parameters could be affected. In this section, we therefore re-run some key models while accounting for phylogenetic non-independence. We do not have complete phylogenetic information for all species examined so far, so this re-analysis is based on a reduced set of species, which is the main reason why we did not include phylogeny throughout.
+
+A phylogeny published by Kahnt et al [-@kahnt2017playing] included most of the species in our sample. The code chunk below reads the tree and renames the tips so that the species names match those in the data frame. We drop *R. gigas* the phylogenetic tree:
+
+
+```{r}
+beetree <- read.tree("Rediviva simplified treeUSE.nex")
+beetree$tip.label <- gsub("Rediviva_", "Rediviva ", beetree$tip.label)
+
+beetree.r <- drop.tip(beetree, c("Rediviva gigas")) ## drop R. gigas
+
+plot(beetree.r)
+
+beetree.r$tip.label <- gsub(" ", "", beetree.r$tip.label) # remove spaces in species names
+
+```
+
+
+There are seven species in our morphological data set that don't appear in the phylogeny and we remove all observations of these species:
+
+
+```{r}
+species.remove <- c("Rediviva autumnalis", "Rediviva pallidula", "Rediviva rhodosoma", 
+                    "Rediviva ruficornis", "Rediviva rufocincta", "Rediviva transkeiana", 
+                    "Rediviva whiteheadi")
+
+beemorph.phy <- beemorph.r[!beemorph.r$Taxa %in% species.remove,]
+
+```
+
+Our data set contains multiple individuals per species and we therefore need to add tips to the pylogenetic tree:
+
+```{r}
+beemorph.phy$species <- gsub(" ", "", beemorph.phy$Taxa)
+rownames(beemorph.phy) <- gsub(" ", "", paste0(beemorph.phy$species, 1:NROW(beemorph.phy)))
+
+species <- unique(beemorph.phy$species)
+
+## because there are multiple rows per species:
+nice.tree.multi <- beetree.r
+for (g in 1:NROW(species)){
+  if(!is.null(nice.tree.multi$edge.length)){
+    flat.tree <-  read.tree(text = 
+      paste0("(", paste(rownames(beemorph.phy)[grep(species[g],rownames(beemorph.phy))], 
+                        collapse = ":0.02, "), ":0.02);"))
+  } else {
+    flat.tree <-  read.tree(text = 
+      c("(", paste(rownames(beemorph.phy)[grep(species[g], rownames(beemorph.phy))], 
+                   collapse = ", "), ");"))
+  }
+  
+  nice.tree.multi <- bind.tree(nice.tree.multi, flat.tree, 
+                     where = which(nice.tree.multi$tip.label == species[g]), 
+                     position = 0, interactive = FALSE)
+  }
+
+```
+
+```{r, echo=F}
+m3 <- lm(log.leg ~ diff.body + mean.body, data=beemorph.r) # static allometry same across species
+m4 <- lme(log.leg ~ diff.body + mean.body, random =~1|Taxa, data=beemorph.r) # random intercept
+m5 <- lme(log.leg ~ diff.body + mean.body, random =~diff.body|Taxa, data=beemorph.r) 
+   # random intercept and slope
+```
+
+
+Next, we use phylogenetic linear regression models. We first add phylogenetic model structures to the errors using model `m3`, which is the simplest multi-level model without random effects:
+
+
+```{r}
+m3.bm <- phylolm(log.leg ~ diff.body + mean.body, phy = nice.tree.multi, model = "BM", 
+                 data = beemorph.phy)
+summary(m3.bm)
+m3.OUr <- phylolm(log.leg ~ diff.body + mean.body, phy = nice.tree.multi, model = "OUrandomRoot", 
+                  data = beemorph.phy)
+summary(m3.OUr)
+m3.OUf <- phylolm(log.leg ~ diff.body + mean.body, phy = nice.tree.multi, model = "OUfixedRoot", 
+                  data = beemorph.phy)
+summary(m3.OUf)
+m3.lambda <- phylolm(log.leg ~ diff.body + mean.body, phy = nice.tree.multi, model = "lambda", 
+                     data = beemorph.phy)
+summary(m3.lambda)
+```
+
+
+AIC suggests that the best model structure is the one assuming an Ornstein-Uhlenbeck process (Models `m3.OUr` and `m3.OUf`). However, all models return a similar estimate for the evolutionary allometric slope ($\beta_b$ in Equation \ref{eq:allsame} and `mean.body` in the output above ranged from `r round(coefficients(m3.OUf)[3],3)` to `r round(coefficients(m3.bm)[3],3)`), which is also comparable to the slope that was estimated by the model without phylogenetic structure (`m3`: `r round(coefficients(m3)[3],3)`) in an earlier section. 
+
+We saw earlier, however, that Model `m3` was not a good description of our data. We next add a phylogenetic correlation structure to Models `m4` and `m5`. These models include random effects and are more complex statistical models. We only managed to get the models assuming a Brownian Motion process to converge.
+
+
+```{r, cache=T}
+m4.bm <- lme(log.leg ~ diff.body + mean.body, random =~1|Taxa, data=beemorph.phy, 
+             correlation = corBrownian(1, nice.tree.multi)) 
+summary(m4.bm)
+
+m5.bm <- lme(log.leg ~ diff.body + mean.body, random =~diff.body|Taxa, data=beemorph.phy, 
+             correlation = corBrownian(1, nice.tree.multi)) 
+summary(m5.bm)
+
+```
+
+
+Again, the estimated evolutionary allometric slopes were  similar to the ones obtained earlier from the models assuming no phylogenetic dependence structure: `r round(summary(m4.bm)$tTable[3,1],3)` in Model `m4.bm` compared to `r round(summary(m4)$tTable[3,1],3)` in Model `m4` and `r round(summary(m5.bm)$tTable[3,1],3)` in Model `m5.bm` compared to `r round(summary(m5)$tTable[3,1],3)` in Model `m5`. We conclude that our earlier results were not sensitive to violation of the assumption that the errors were phylogenetically independent.
 
 # Within and between-population variation in *R. neliana*
+
+We saw earlier that *R. neliana* had a steeper allometric slope than the other species. Is it possible that our *R. neliana* sample is made up of individuals that belong to several isolated populations on independent evolutionary tracks? In this section, we examine variation within and between populations of *R. neliana*. For this section, we refer to the within-population allometric relationship as the static allometric relationship and to the between-population allometric relationship as the evolutionary allometric relationship.
 
 We first select only the *R. neliana* individuals and tabulate them by population:
 
@@ -547,14 +683,16 @@ beemorph.n$diff.body <- beemorph.n$log.body - beemorph.n$mean.body  # difference
 m3.n <- lm(log.leg ~ diff.body + mean.body, data=beemorph.n) # static allometry same across species
 summary(m3.n)
 
-m4.n <- lme(log.leg ~ diff.body + mean.body, random =~1|population_code, data=beemorph.n) # random intercept
+m4.n <- lme(log.leg ~ diff.body + mean.body, random =~1|population_code, data=beemorph.n) 
+   # random intercept
 summary(m4.n)
 
-m5.n <- lme(log.leg ~ diff.body + mean.body, random =~diff.body|population_code, data=beemorph.n) # random intercept and slope
+m5.n <- lme(log.leg ~ diff.body + mean.body, random =~diff.body|population_code, data=beemorph.n) 
+   # random intercept and slope
 summary(m5.n)
 ```
 
-The residual standard error decreased markedly, from `r summary(m3.n)$sigma` in Model `m3.n` to `r sqrt(varcomp(m4.n)[[2]])` in Model `m4.n`, when we included random intercepts. Including random slopes reduced the residual standard error to `r sqrt(varcomp(m5.n)[[2]])` in Model `m5.n`.
+The residual standard error decreased markedly, from `r round(summary(m3.n)$sigma,3)` in Model `m3.n` to `r round(sqrt(varcomp(m4.n)[[2]]),3)` in Model `m4.n`, when we included random intercepts. Including random slopes reduced the residual standard error to `r round(sqrt(varcomp(m5.n)[[2]]),3)` in Model `m5.n`.
 
 Models `m4.n` and `m5.n` both have the same fixed-effects structure and we can therefore compare them using Akaike's Information Criterion:
 
@@ -565,7 +703,20 @@ AIC(m4.n, m5.n)
 According to AIC, Model `m5.n` is slightly better, even though Model `m4.n` is almost equally well supported by the data. We conclude that there is clear evidence for the intercepts to vary among populations but the data are not conclusive on whether the slopes also vary or not.
 
 ```{r, echo=F, message=FALSE, results="hide"}
-pdf("evolutionaryallometry_neliana.pdf",width = 14, height = 5)
+# m3
+(tstat.m3 <-(coefficients(m3.n)[3]-1)/sqrt(vcov(m3.n)[3,3])) # t statistic
+
+# m4
+(tstat.m4 <-(summary(m4.n)$tTable[3,1]-1)/summary(m4.n)$tTable[3,2]) # t statistic
+
+# m5
+(tstat.m5 <-(summary(m5.n)$tTable[3,1]-1)/summary(m5.n)$tTable[3,2]) # t statistic
+```
+
+Using the fitted Models `m3.n` to `m5.n`, we test whether the evolutionary allometric slope differs from isometry. The estimated evolutionary slopes, i.e. $\beta_b$, are `r round(coefficients(m3.n)[3],3)` (se = `r round(sqrt(vcov(m3.n)[3,3]),3)`, t = `r round(tstat.m3,3)`, P = `r round(pt(tstat.m3,df=summary(m3.n)$df[2], lower.tail = F)*2,3)` testing $H_0: \beta_b = 1$) for Model `m3.n`, `r round(summary(m4.n)$tTable[3,1],3)` (se = `r round(summary(m4.n)$tTable[3,2],3)`, t = `r round(tstat.m4,3)`, P = `r round(pt(tstat.m4,df=summary(m4.n)$tTable[3,3], lower.tail = F)*2,3)` testing $H_0: \beta_b = 1$) for Model `m4.n` and `r round(summary(m5.n)$tTable[3,1],3)` (se = `r round(summary(m5.n)$tTable[3,2],3)`, t = `r round(tstat.m5,3)`, P = `r round(pt(tstat.m5,df=summary(m5.n)$tTable[3,3], lower.tail = F)*2,3)` testing $H_0: \beta_b = 1$) for Model `m5.n`. Only Model `m5.n`, which was poorly supported by the data, suggests some evidence against $H_0$ and therefore conclude that we have no clear evidence that the evolutionary allometric slope among populations of *R. neliana* differs from 1.
+
+```{r, echo=F, message=FALSE, results="hide"}
+pdf("evolutionaryallometry_neliana.pdf",width = 12, height = 5)
 par(mar=c(4,1,1,1), mfrow=c(1,3), oma=c(0,5,0,0))
 
 # m3
@@ -588,15 +739,13 @@ y <- coefficients(m3.n)[1] + coefficients(m3.n)[3] * x
 lines(y~x)
 
 
-#legend(1.5, 3.0, legend = levels(beemorph.n$population_code), col=col_vector, bty="n", pch=19, cex=0.9, text.font=3)
-
 # m4
 plot(log.leg ~ log.body, data=beemorph.n, col=col_vector[pop.no], axes=F, 
      xlim=c(min(beemorph.n$log.body),max(beemorph.n$log.body)), xlab = "", ylab = "")
 mtext(expression ('log' * ' body size (ITD)'), side=1, line=2.4)
 #mtext(expression ('log' * ' foreleg length'), side=2, line=2.4)
 axis(1, at=seq(0.6, 1.2, 0.2))
-axis(2,las=1)
+#axis(2,las=1)
 
 # plotting within-population (static) allometry
 for (i in 1:max(beemorph.n$pop.no)) lines(predict(m4.n)[pop.no==i] ~ log.body[pop.no==i], data=beemorph.n, col=col_vector[i])
@@ -609,15 +758,13 @@ x <- seq(min(beemorph.n$log.body),max(beemorph.n$log.leg),length=50) # adding li
 y <- fixef(m4.n)[1] + fixef(m4.n)[3] * x
 lines(y~x)
 
-#legend(1.5, 3.0, legend = levels(beemorph.n$population_code), col=col_vector, bty="n", pch=19, cex=0.9, text.font=3)
-
 # m5
 plot(log.leg ~ log.body, data=beemorph.n, col=col_vector[pop.no], axes=F, 
-     xlim=c(min(beemorph.n$log.body),max(beemorph.n$log.body)+0.2), xlab = "", ylab = "")
+     xlim=c(min(beemorph.n$log.body),max(beemorph.n$log.body)), xlab = "", ylab = "")
 mtext(expression ('log' * ' body size (ITD)'), side=1, line=2.4)
 #mtext(expression ('log' * ' foreleg length'), side=2, line=2.4)
 axis(1, at=seq(0.6, 1.2, 0.2))
-axis(2,las=1)
+#axis(2,las=1)
 
 # plotting within-population (static) allometry
 for (i in 1:max(beemorph.n$pop.no)) lines(predict(m5.n)[pop.no==i] ~ log.body[pop.no==i], data=beemorph.n, col=col_vector[i])
@@ -630,12 +777,12 @@ x <- seq(min(beemorph.n$log.body),max(beemorph.n$log.leg),length=50) # adding li
 y <- fixef(m5.n)[1] + fixef(m5.n)[3] * x
 lines(y~x)
 
-legend(1.2, 2.2, legend = levels(beemorph.n$population_code), col=col_vector, bty="n", pch=19, cex=0.9, text.font=3)
+legend(1.03, 2.13, legend = levels(beemorph.n$population_code), col=col_vector, bty="n", pch=19, cex=1.2, text.font=3)
 
 dev.off()
 ```
 
-```{r, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Allometric relationship of leg length against body size in *R. neliana* populations The black line shows the fitted evolutionary allometric relationship."), echo=F}
+```{r, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Allometric relationship of leg length against body size in \\textit{R. neliana} populations The black line shows the fitted evolutionary allometric relationship."), echo=F}
 knitr::include_graphics("evolutionaryallometry_neliana.pdf")
 ```
 
@@ -655,16 +802,18 @@ knitr::kable(tab, digits = 2)
 
 The coefficient estimating the difference between the evolutionary and static allometric slopes is positive, indicating that the evolutionary allometric slope is steeper than the static allometric slope but the difference is much smaller than in the comparison across species and Models `m7` and `m8` both yielded a confidence interval that included 0.
 
+In summary, when examining within- and among-population allometric relationships in *R. neliana*, we found qualitatively similar patterns as we did when examining within- and among-species allometric relationship across the *Rediviva* genus but these patterns were weaker and not always statistically supported.
+
 # Is variation in allometric relationships explained by spur length of the host flowers?
 
 For all species except *R. neliana*, the allometric exponent (slope) was estimated to be smaller than one. And when we considered within-population allometry for *R. neliana*, this was also true for all populations of that species. An allometric exponent $<1$ implies that small individuals have relatively long legs for their size and large individuals have relatively short legs for their size. What are the selective forces acting on this relationship and what could explain the variation among species -- and in the case of *R. neliana*, variation among population -- in these allometric parameters?
 
 These bees collect oil from flowers using their forelegs, so spur length of the flowers from which these bees collect the oil is a candidate environmental driver likely to act as selective force.
 
-The figure below shows leg length as a function of spur length (using a weighted mean across all plant species each bee species is known to visit). The solid black line is the 1:1 relationship. Colours indicate different species using the same colour scheme as in Figure \ref{fig:evolutionaryallometry}). Leg length tracks spur length with most species having legs at least as long as the spur length of the flowers they visit.
+The figure below shows leg length as a function of spur length (using a weighted mean across all plant species each bee species is known to visit). The solid black line is the 1:1 relationship. Colours indicate different species using the same colour scheme as in Figure \ref{fig:staticallometry}). *R. gigas* is included in this plot. Leg length tracks spur length with most species having legs at least as long as the spur length of the flowers they visit.
 
 ```{r, echo=F}
-plot(leg_length ~ spur_length, data=beemorph.r, col=col_vector[SPECIES.no], axes=F, xlab="Spur length [mm]", ylab="Leg length [mm]")
+plot(leg_length ~ spur_length, data=beemorph, col=col_vector[SPECIES.no], axes=F, xlab="Spur length [mm]", ylab="Leg length [mm]")
 axis(1)
 axis(2, las=1)
 abline(0,1)
@@ -690,7 +839,7 @@ We estimate the proportion of variance of the allometric intercept that is expla
 
 $$\frac{\sigma_{0j} - \sigma_{rj}}{\sigma_{rj}}$$
 
-where $\sigma_{0j}$ is the estimated variance of the random effects $\mu_{0j}$ and $\sigma_{rj}$ is the estimated variance of the random effects $\mu_{rj}$.
+where $\sigma_{0j}$ is the estimated variance of the random effects $\mu_{0j}$ and $\sigma_{rj}$ is the estimated variance of the random effects $\mu_{rj}$. We excluded *R. gigas* from this analysis because this species was an outlier with a large influence on the estimated evolutionary allometric relationship.
 
 
 ```{r}
@@ -702,11 +851,11 @@ m10 <- lme(log.leg ~ diff.body + I(mean.body-mean(log.body)) + log(spur_length+0
 summary(m10)
 ```
 
-The variance of the random intercepts decreased from `r varcomp(m9)[[1]]` in Model `m9` to `r varcomp(m10)[[1]]` in Model `m10` and spur length therefore explained `r ((varcomp(m9)[[1]] - varcomp(m10)[[1]])/varcomp(m9)[[1]])*100`% of the variance in the intercept among species.
+The variance of the random intercepts decreased from `r round(as.numeric(varcomp(m9)[[1]]),3)` in Model `m9` to `r round(as.numeric(varcomp(m10)[[1]]),3)` in Model `m10` and spur length therefore explained `r round(((varcomp(m9)[[1]] - varcomp(m10)[[1]])/varcomp(m9)[[1]])*100, 1)`% of the variance in the intercept among species.
 
-The analysis above does not account for non-independence among species due to phylogeny. We next examine whether the parameters of the species-specific allometric relationship estimated earlier (Table \ref{tab:alloparms}) are related to spur length whil accounting for phylogeny.
+The analysis above does not account for non-independence among species due to phylogeny. We next examine whether the parameters of the species-specific allometric relationship estimated earlier (Table \ref{tab:alloparms} are related to spur length whil accounting for phylogeny.
 
-A phylogeny published by Kahnt et al [-@Kahnt] included most of the species in our sample. Here is the phylogenetic tree:
+We again use the phylogeny published by Kahnt et al [-@kahnt2017playing], this time including *R. gigas* because we are only going to examine variation in the static allometric relationships where this species was not an outlier. Here is the phylogenetic tree:
 
 ```{r}
 beetree <- read.tree("Rediviva simplified treeUSE.nex")
@@ -721,7 +870,7 @@ rownames(allometries) <- paste("Rediviva_", substr(rownames(allometries), 10,100
 name.check(beetree, allometries)
 ```
 
-Seven of the species in our data set do not occur in the tree and we remove them from further analysis:
+Again, we remove the seven species in our data set that do not occur in the tree:
 
 ```{r}
 names.remove <- name.check(beetree, allometries)$data_not_tree 
@@ -729,7 +878,7 @@ allometries.r <- allometries[!(rownames(allometries) %in% names.remove),]
 name.check(beetree, allometries.r)
 ```
 
-Next, we use phylogenetic least squares models to examine whether the allometric intercept and slope are related to spur length. We use a number of different evolutionary models, including Brownian motion, an Ornstein-Uhlenbeck model with an ancestral state to be estimated at the root, an Ornstein-Uhlenbeck model with the ancestral state at the root having a stationary distribution and Pagel's $\lambda$.
+Next, we use phylogenetic least squares models to examine whether the static allometric intercept and slope are related to spur length. We use a number of different evolutionary models, including Brownian motion, an Ornstein-Uhlenbeck model with an ancestral state to be estimated at the root, an Ornstein-Uhlenbeck model with the ancestral state at the root having a stationary distribution and Pagel's $\lambda$.
 
 ```{r, warning=F}
 m11.bm <- phylolm(intercepts ~ spur_length, phy = beetree, model = "BM", data = allometries.r)
@@ -745,7 +894,7 @@ The estimated relationship between allometric intercept and spur length was simi
 ```{r, echo=F}
 tab <- data.frame(Model = c('m11.bm', 'm11.OUr', 'm11.OUf', 'm11.lambda'), beta = c(coefficients(m11.bm)[2], coefficients(m11.OUr)[2],coefficients(m11.OUf)[2],coefficients(m11.lambda)[2]), lci = c(confint(m11.bm)[2,1], confint(m11.OUf)[2,1],confint(m11.OUr)[2,1],confint(m11.lambda)[2,1]), uci = c(confint(m11.bm)[2,2], confint(m11.OUr)[2,2],confint(m11.OUf)[2,2],confint(m11.lambda)[2,2]))
 
-knitr::kable(tab, digits = 2, caption = 'Relationship between the allometric intercept and spur length of the host flower for 18 species of *Rediviva* bees. Beta is the estimated slope of this relationship and the other columns give the lower and upper 95% confidence limit.')
+knitr::kable(tab, digits = 2, caption = 'Relationship between the allometric intercept and spur length of the host flower for 18 species of \\textit{Rediviva} bees. Beta is the estimated slope of this relationship and the other columns give the lower and upper 95% confidence limit.')
 ```
 
 Is the allometric slope also related to spur length?
@@ -762,7 +911,7 @@ All models agreed that there is no evidence for a relationship between allometri
 ```{r, echo=F}
 tab <- data.frame(Model = c('m12.bm', 'm12.OUr', 'm12.OUf', 'm12.lambda'), beta = c(coefficients(m12.bm)[2], coefficients(m12.OUr)[2],coefficients(m12.OUf)[2],coefficients(m12.lambda)[2]), lci = c(confint(m12.bm)[2,1], confint(m12.OUf)[2,1],confint(m12.OUr)[2,1],confint(m12.lambda)[2,1]), uci = c(confint(m12.bm)[2,2], confint(m12.OUr)[2,2],confint(m12.OUf)[2,2],confint(m12.lambda)[2,2]))
 
-knitr::kable(tab, digits = 2, caption = 'Relationship between the allometric slope and spur length of the host flower for 18 species of *Rediviva* bees. Beta is the estimated slope of this relationship and the other columns give the lower and upper 95% confidence limit.')
+knitr::kable(tab, digits = 2, caption = 'Relationship between the allometric slope and spur length of the host flower for 18 species of \\textit{Rediviva} bees. Beta is the estimated slope of this relationship and the other columns give the lower and upper 95% confidence limit.')
 ```
 
 
@@ -786,7 +935,7 @@ legend(0,1, legend = levels(as.factor(rownames(allometries.r))), col=col_vector,
 dev.off()
 ```
 
-```{r allometry_spurlength, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Relationship of allometric parameters to spur length of the host plant for Rediviva bee species"), echo=F}
+```{r allometry_spurlength, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Relationship of allometric parameters to spur length of the host plant for \\textit{Rediviva} bee species"), echo=F}
 knitr::include_graphics("allometry_spurlength.pdf")
 ```
 
