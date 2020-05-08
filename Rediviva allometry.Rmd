@@ -269,7 +269,7 @@ dev.off()
 knitr::include_graphics("evolutionaryallometry.pdf")
 ```
 
-Does the evolutionary allometric slope differ from isometry, i.e. does $\beta_b$ differ from 1? We can easily test this for the estimates of $\beta_b$ from Models `m3` to `m5` against the null hypothesis $H_0: \beta_b = 1$.
+Does the evolutionary allometric slope ($\beta_b$ in Equations \ref{eq:allsame} - \ref{eq:varslope}; `mean.body` in the R output above) differ from isometry? The estimates are `r round(coefficients(m3)[3],1)` (Model `m3`), `r round(summary(m4)$tTable[3,1],3)` (Model `m4`) and `r round(summary(m5)$tTable[3,1],3)` (Model `m5`). Do these estimates of $\beta_b$ differ from 1? We can easily test this for the estimates of $\beta_b$ from Models `m3` to `m5` against the null hypothesis $H_0: \beta_b = 1$.
 
 ```{r}
 # m3
@@ -285,9 +285,9 @@ pt(tstat.m4,df=summary(m4)$tTable[3,3], lower.tail = F)*2 # p value (2-sided alt
 pt(tstat.m5,df=summary(m5)$tTable[3,3], lower.tail = F)*2 # p value (2-sided alternative)
 ```
 
-According to Models `m3` and `m5`, the evolutionary allometric slope is significantly different from 1, whereas according to Model `m4`, evidence against $H_0$ is not very strong. We note that Model `m5` was best supported by the data and therefore conclude that --on balance -- the data support the notion that the evolutionary allometric slope is larger than 1.
+According to Models `m3` and `m5`, the evolutionary allometric slope is significantly different from 1. In Model `m4`, $\beta_b$ was estimated with a large standard error, leading to a relatively high P value and weak evidence against $H_0$. We note that Model `m5` was best supported by the data and therefore conclude that --on balance -- the data support the notion that the evolutionary allometric slope is larger than 1.
 
-## Is variation in slope driven by *R. neliana*?
+## Is variation in the static allometric slope driven by *R. neliana*?
 
 *R. neliana* has the steepest static allometric relationship of all species and we are going to examine this species in more detail later. Here, we quickly want to check whether this species is the reason for why we find considerable variation in the slopes while the other species may be similar.
 
@@ -524,7 +524,7 @@ dev.off()
 knitr::include_graphics("evolutionaryallometry_withgigas.pdf")
 ```
 
-## Does accounting for phylogeny affect our results?
+# Does accounting for phylogeny affect our results?
 
 Our analyses above assumed independent residuals but clearly, the species are phylogenetically related and this relatedness could cause non-independence in the data. Our maximum likelihood estimates of the parameters of the static allometric relationships in Table \ref{tab:alloparms} should not be affected because we estimated separate parameters for each species. However, our estimate of the evolutionary allometric parameters could be affected. In this section, we therefore re-run some key models while accounting for phylogenetic non-independence. We do not have complete phylogenetic information for all species examined so far, so this re-analysis is based on a reduced set of species, which is the main reason why we did not include phylogeny throughout.
 
@@ -713,7 +713,7 @@ According to AIC, Model `m5.n` is slightly better, even though Model `m4.n` is a
 (tstat.m5 <-(summary(m5.n)$tTable[3,1]-1)/summary(m5.n)$tTable[3,2]) # t statistic
 ```
 
-Using the fitted Models `m3.n` to `m5.n`, we test whether the evolutionary allometric slope differs from isometry. The estimated evolutionary slopes, i.e. $\beta_b$, are `r round(coefficients(m3.n)[3],3)` (se = `r round(sqrt(vcov(m3.n)[3,3]),3)`, t = `r round(tstat.m3,3)`, P = `r round(pt(tstat.m3,df=summary(m3.n)$df[2], lower.tail = F)*2,3)` testing $H_0: \beta_b = 1$) for Model `m3.n`, `r round(summary(m4.n)$tTable[3,1],3)` (se = `r round(summary(m4.n)$tTable[3,2],3)`, t = `r round(tstat.m4,3)`, P = `r round(pt(tstat.m4,df=summary(m4.n)$tTable[3,3], lower.tail = F)*2,3)` testing $H_0: \beta_b = 1$) for Model `m4.n` and `r round(summary(m5.n)$tTable[3,1],3)` (se = `r round(summary(m5.n)$tTable[3,2],3)`, t = `r round(tstat.m5,3)`, P = `r round(pt(tstat.m5,df=summary(m5.n)$tTable[3,3], lower.tail = F)*2,3)` testing $H_0: \beta_b = 1$) for Model `m5.n`. Only Model `m5.n`, which was poorly supported by the data, suggests some evidence against $H_0$ and therefore conclude that we have no clear evidence that the evolutionary allometric slope among populations of *R. neliana* differs from 1.
+Using the fitted Models `m3.n` to `m5.n`, we test whether the evolutionary allometric slope differs from isometry. The estimated evolutionary slopes, i.e. $\beta_b$, are `r round(coefficients(m3.n)[3],3)` (se = `r round(sqrt(vcov(m3.n)[3,3]),3)`, t = `r round(tstat.m3,3)`, P = `r round(pt(tstat.m3,df=summary(m3.n)$df[2], lower.tail = F)*2,3)` testing $H_0: \beta_b = 1$) for Model `m3.n`, `r round(summary(m4.n)$tTable[3,1],3)` (se = `r round(summary(m4.n)$tTable[3,2],3)`, t = `r round(tstat.m4,3)`, P = `r round(pt(tstat.m4,df=summary(m4.n)$tTable[3,3], lower.tail = F)*2,3)` testing $H_0: \beta_b = 1$) for Model `m4.n` and `r round(summary(m5.n)$tTable[3,1],3)` (se = `r round(summary(m5.n)$tTable[3,2],3)`, t = `r round(tstat.m5,3)`, P = `r round(pt(tstat.m5,df=summary(m5.n)$tTable[3,3], lower.tail = F)*2,3)` testing $H_0: \beta_b = 1$) for Model `m5.n`. Only Model `m5.n`, which was poorly supported by the data, suggests some evidence against $H_0$ and we therefore conclude that we have no strong evidence that the evolutionary allometric slope among populations of *R. neliana* differs from 1.
 
 ```{r, echo=F, message=FALSE, results="hide"}
 pdf("evolutionaryallometry_neliana.pdf",width = 12, height = 5)
@@ -782,7 +782,7 @@ legend(1.03, 2.13, legend = levels(beemorph.n$population_code), col=col_vector, 
 dev.off()
 ```
 
-```{r, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Allometric relationship of leg length against body size in \\textit{R. neliana} populations The black line shows the fitted evolutionary allometric relationship."), echo=F}
+```{r ea_neliana, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Allometric relationship of leg length against body size in \\textit{R. neliana} populations The black line shows the fitted evolutionary allometric relationship."), echo=F}
 knitr::include_graphics("evolutionaryallometry_neliana.pdf")
 ```
 
@@ -795,7 +795,7 @@ m7 <- lme(log.leg ~ log.body + mean.body, random =~1|population_code, data=beemo
 
 m8 <- lme(log.leg ~ log.body + mean.body, random =~diff.body|population_code, data=beemorph.n) # random intercept and slope
 
-tab <- data.frame(Model = c('m6', 'm7', 'm8'), delta = c(coefficients(m6)[3], intervals(m7)$fixed[3,2], intervals(m8)$fixed[3,2]), lci = c(confint(m6)[3,1], intervals(m7)$fixed[3,1], intervals(m8)$fixed[3,1]), uci = c(confint(m6)[3,2], intervals(m7)$fixed[3,3], intervals(m8)$fixed[3,3]))
+tab <- data.frame(Model = c('m6', 'm7', 'm8'), delta = c(coefficients(m6)[3], intervals(m7)$fixed[3,2], intervals(m8)$fixed[3,2]), lcl = c(confint(m6)[3,1], intervals(m7)$fixed[3,1], intervals(m8)$fixed[3,1]), ucl = c(confint(m6)[3,2], intervals(m7)$fixed[3,3], intervals(m8)$fixed[3,3]))
 
 knitr::kable(tab, digits = 2)
 ```
@@ -892,9 +892,9 @@ m11.lambda <- phylolm(intercepts ~ spur_length, phy = beetree, model = "lambda",
 The estimated relationship between allometric intercept and spur length was similar across the models assuming different evolutionary processes. All models estimated a positive relationship with a confidence interval that excluded zero. This analysis therefore agrees with the multi-level analysis above and suggests that species that visit flowers with longer spurs have longer forelegs.
 
 ```{r, echo=F}
-tab <- data.frame(Model = c('m11.bm', 'm11.OUr', 'm11.OUf', 'm11.lambda'), beta = c(coefficients(m11.bm)[2], coefficients(m11.OUr)[2],coefficients(m11.OUf)[2],coefficients(m11.lambda)[2]), lci = c(confint(m11.bm)[2,1], confint(m11.OUf)[2,1],confint(m11.OUr)[2,1],confint(m11.lambda)[2,1]), uci = c(confint(m11.bm)[2,2], confint(m11.OUr)[2,2],confint(m11.OUf)[2,2],confint(m11.lambda)[2,2]))
+tab <- data.frame(Model = c('m11.bm', 'm11.OUr', 'm11.OUf', 'm11.lambda'), beta = c(coefficients(m11.bm)[2], coefficients(m11.OUr)[2],coefficients(m11.OUf)[2],coefficients(m11.lambda)[2]), lcl = c(confint(m11.bm)[2,1], confint(m11.OUf)[2,1],confint(m11.OUr)[2,1],confint(m11.lambda)[2,1]), ucl = c(confint(m11.bm)[2,2], confint(m11.OUr)[2,2],confint(m11.OUf)[2,2],confint(m11.lambda)[2,2]))
 
-knitr::kable(tab, digits = 2, caption = 'Relationship between the allometric intercept and spur length of the host flower for 18 species of \\textit{Rediviva} bees. Beta is the estimated slope of this relationship and the other columns give the lower and upper 95% confidence limit.')
+knitr::kable(tab, digits = 2, caption = 'Relationship between the allometric intercept and spur length of the host flower for 18 species of \\textit{Rediviva} bees. Beta is the estimated slope of this relationship and the other columns give the lower and upper 95% confidence limits.')
 ```
 
 Is the allometric slope also related to spur length?
@@ -909,9 +909,9 @@ m12.lambda <- phylolm(slopes ~ spur_length, phy = beetree, model = "lambda", dat
 All models agreed that there is no evidence for a relationship between allometric slope and spur length. The estimates agreed across models with different evolutionary processes and the confidence interval for the slope of the relationship between allometric slopes and spur length included zero.
 
 ```{r, echo=F}
-tab <- data.frame(Model = c('m12.bm', 'm12.OUr', 'm12.OUf', 'm12.lambda'), beta = c(coefficients(m12.bm)[2], coefficients(m12.OUr)[2],coefficients(m12.OUf)[2],coefficients(m12.lambda)[2]), lci = c(confint(m12.bm)[2,1], confint(m12.OUf)[2,1],confint(m12.OUr)[2,1],confint(m12.lambda)[2,1]), uci = c(confint(m12.bm)[2,2], confint(m12.OUr)[2,2],confint(m12.OUf)[2,2],confint(m12.lambda)[2,2]))
+tab <- data.frame(Model = c('m12.bm', 'm12.OUr', 'm12.OUf', 'm12.lambda'), beta = c(coefficients(m12.bm)[2], coefficients(m12.OUr)[2],coefficients(m12.OUf)[2],coefficients(m12.lambda)[2]), lcl = c(confint(m12.bm)[2,1], confint(m12.OUf)[2,1],confint(m12.OUr)[2,1],confint(m12.lambda)[2,1]), ucl = c(confint(m12.bm)[2,2], confint(m12.OUr)[2,2],confint(m12.OUf)[2,2],confint(m12.lambda)[2,2]))
 
-knitr::kable(tab, digits = 2, caption = 'Relationship between the allometric slope and spur length of the host flower for 18 species of \\textit{Rediviva} bees. Beta is the estimated slope of this relationship and the other columns give the lower and upper 95% confidence limit.')
+knitr::kable(tab, digits = 2, caption = 'Relationship between the allometric slope and spur length of the host flower for 18 species of \\textit{Rediviva} bees. Beta is the estimated slope of this relationship and the other columns give the lower and upper 95% confidence limits.')
 ```
 
 
@@ -939,11 +939,216 @@ dev.off()
 knitr::include_graphics("allometry_spurlength.pdf")
 ```
 
+## Variability of spur length
 
-## Same as above but for R. neliana only ??
+The analyses in the previous section suggest that the allometric intercept, i.e. parameter $a$ in Equation \ref{eq:allometry} is positively related to the typical spur length of the flowers each species visits but that there is no evidence that the static allometric slope, i.e. parameter $b$ in Equation \ref{eq:allometry} is linearly related to spur length. However, spur length could still have played a role in the evolution of $b$. We observed that the static allometric slope was generally less than 1, implying that leg length is relatively less variable compared to body length. Perhaps spur length is relatively fixed and so selects for a certain leg length regardless of a bee's body size? Perhaps there is an optimal leg length and spur length exerts stabilising selection on leg length? We do not have the data to test this idea directly but one prediction that follows from these hypotheses is that spur length of the flowers that a species visits should not be more variable than leg length of that species.
 
-## Variation in spur length...
+There is also the practical consideration whether our use of average spur length in the analyses above is sensible given that different bees may visit flowers with different spur lengths and there could also be local adaptation to spur length variation across populations.
 
+For these reasons, we would like to better understand how spur length of the host plant(s) varies within and across populations, and how the within-population variability in spur length compares to variability in the leg length of the bees. We have such detailed data for two bee species. One of them is *R. neliana*, which we have seen exhibits considerable allometric variation among populations. We will examine this variation in relation to spur length in the next section.
+
+Here, we look at the other species for which we have population-specific data for both bees and their host plants, *R. pallidula*. We do not have the raw data for spur length but we have mean spurlength, standard deviation and sample sizes for six populations. First, we need to do some data preparation:
+
+
+```{r}
+spurs <- read.csv("oil bee spur hosts for within and between variance.csv")
+spurs.p <- spurs[grep("palli", spurs$population.code),] # extract data for R. pallidula populations
+
+# oder by bee population number
+od <- order(as.numeric(substr(spurs.p$population.code,14,14)))
+spurs.p <- spurs.p[od,]
+
+# extract the R. pallidula data from the morpholgy data frame:
+beemorph.p <- beemorph[beemorph$Taxa=="Rediviva pallidula" & !is.na(beemorph$population_spur_length),]
+
+# summarise bee data per population
+pall.legs.mean <- aggregate(beemorph.p$leg_length, by=list(beemorph.p$population_code), mean)
+pall.legs.sd <- aggregate(beemorph.p$leg_length, by=list(beemorph.p$population_code), sd)
+pall.legs.n <- aggregate(beemorph.p$leg_length, by=list(beemorph.p$population_code), length)
+pall.legs <- data.frame(p.mean = pall.legs.mean$x, p.sd = pall.legs.sd$x, 
+                        sample.size.bee = pall.legs.n$x)
+rownames(pall.legs) <- pall.legs.mean$Group.1
+```
+
+```{r, echo=F, message=FALSE, results="hide"}
+qual_col_pals.short <- qual_col_pals[c("Set1"),]
+col_vector.short = unlist(mapply(brewer.pal, qual_col_pals.short$maxcolors, rownames(qual_col_pals.short)))
+
+spurs.p$pops <- factor(spurs.p$pops)
+spurs.p$Host.plant.species <- factor(spurs.p$Host.plant.species)
+spurs.p$pops <- factor(spurs.p$pops, levels(spurs.p$pops)[c(3,1,5,6,2,4)])
+
+pdf("spurvariation.pdf",5,5)
+plot(mean.spur.lngth ~ as.numeric(pops), data=spurs.p, ylim=c(6,12), axes=F, col=col_vector.short[Host.plant.species], type='p', pch=19, ylab="Spur or leg length [mm]", xlab="Population")
+axis(1, at=c(1:6), labels=levels(spurs.p$pops))
+axis(2,las=1)
+for (i in 1:dim(spurs.p)[1]) segments(i,spurs.p$mean.spur.lngth[i]+spurs.p$sds[i], y1=spurs.p$mean.spur.lngth[i]-spurs.p$sds[i],col=col_vector.short[spurs.p$Host.plant.species[i]])
+
+points(seq(1.1,6.1,by=1), pall.legs$p.mean, pch=1, col="darkorange")
+for (i in 1:dim(pall.legs)[1]) segments(i+0.1,pall.legs$p.mean[i]+pall.legs$p.sd[i], y1=pall.legs$p.mean[i]-pall.legs$p.sd[i], col="darkorange")
+
+legend(3,8,legend=c(levels(spurs.p$Host.plant.species),"Bee leg length"), col = c(col_vector.short[unique(spurs.p$Host.plant.species)[c(2,1,3)]], "darkorange"), pch=c(rep(1,3), 19),bty="n")
+dev.off()
+```
+```{r spurvariation, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Spur length of plant populations that are associated with six different populations of \\textit{R. pallidula} bees. The bees used three different plant species across populations, \\textit{Diascia anastrepta}, \\textit{Diascia barberae} and \\textit{Diascia integerrima}. The foreleg length of \\textit{R. pallidula} in the different populations are shown in orange. Solid and open circles show the population mean of the plant spur length and bee leg length, respectively. The vertical lines extend one standard deviation above and below the mean."), echo=F}
+knitr::include_graphics("spurvariation.pdf")
+```
+
+Figure \ref{fig:spurvariation} suggests that leg length in *R. pallidula* varied relatively little between populations. Leg length was similar to spur length of the most common host plant, *D. barberae*, which also did not vary a lot between populations. The bees appear to use species with shorter spur lengths in three populations.
+
+If there was stabilising selection on leg length imposed by relatively constant spur length, we would expect to see less variation in spur length than in leg length. Next, we compare the variances in spur length to the variances in the leg length of the corresponding bee population. We compare the variances by calculating an F ratio for each population, which we test against the null hypothesis of equal variances $H_0: 1 = \frac{\sigma^2_{beeleg}}{\sigma^2_{spur}} \sim F_{df.bees, df.spur}$.
+
+```{r}
+F.vals <- pall.legs$p.sd^2/spurs.p$sds^2
+df.bees <- pall.legs$sample.size.bee-1
+df.spur <- spurs.p$Sample.size..N.-1
+p.vals <- pf(F.vals, df.bees, df.spur, lower.tail = F)
+```
+
+```{r, echo=F}
+tab <- data.frame(Population = spurs.p$pops, F.vals, df.bees, df.spur, p.vals)
+
+knitr::kable(tab, digits = 3, caption = 'Ratio of the variances in bee leg length and plant spur length')
+
+```
+
+
+The only population where the variance in bee leg length was larger than the variance in spur length was population BMP but in this case, the bees were using a *Diascia* species with spurs that were shorter than the bees' legs. These data do not lend support to the idea that legs are under stabilising selection to fit a narrow range of spur lengths.
+
+# Is allometric variation among *R. neliana* populations explained by spur length of the host flowers?
+
+We next apply the analyses of the section above to *R. neliana* and examine whether variation in the allometric parameters among populations is related to spur length of the population-specific host plants.
+
+The figure below shows leg length as a function of spur length. The solid black line is the 1:1 relationship. Colours indicate different populations using the same colour scheme as in Figure \ref{fig:ea_neliana}. Leg length tracks spur length reasonably well across populations.
+
+```{r, echo=F}
+plot(exp(log.leg) ~ population_spur_length, data=beemorph.n, col=col_vector[pop.no], axes=F, xlab="Spur length [mm]", ylab="Leg length [mm]")
+axis(1)
+axis(2, las=1)
+abline(0,1)
+```
+
+
+
+
+```{r}
+m9 <- lme(log.leg ~ diff.body + I(mean.body-mean(log.body)), random =~diff.body|population_code,
+          data=beemorph.n) # random intercepts and slopes
+m10 <- lme(log.leg ~ diff.body + I(mean.body-mean(log.body)) + log(population_spur_length+0.5), 
+           random =~diff.body|population_code, data=beemorph.n) # adding spur length
+```
+
+The variance of the random intercepts decreased from `r round(as.numeric(varcomp(m9)[[1]]),3)` in Model `m9` to `r round(as.numeric(varcomp(m10)[[1]]),3)` in Model `m10` and spur length therefore explained `r round(((varcomp(m9)[[1]] - varcomp(m10)[[1]])/varcomp(m9)[[1]])*100, 1)`% of the variance in the intercept among species.
+
+
+Next, we use linear models to examine whether the static allometric intercept and slope are related to spur length.
+
+```{r, warning=F}
+allometries.n$population_spur_length <- aggregate(beemorph.n$population_spur_length, 
+                                        by=list(beemorph.n$population_code), mean)$x
+m11.n <- lm(intercepts ~ population_spur_length, data = allometries.n)
+summary(m11.n)
+```
+
+The estimated relationship between allometric intercept and spur length was positive with a small P value that was however not quite significant at the 5\% level. Taken together with the results of the multi-level analysis above we conclude that there is some evidence that species that visit flowers with longer spurs have longer forelegs.
+
+Is the allometric slope related to spur length?
+
+```{r, warning=F}
+m12.n <- lm(slopes ~ population_spur_length, data = allometries.n)
+summary(m12.n)
+```
+
+There was no evidence for a relationship between allometric slope and spur length.
+
+```{r, echo=F, message=FALSE, results="hide"}
+allometries.n$population_code <- factor(rownames(allometries.n))
+
+pdf("allometry_spurlength_neliana.pdf", 7,3)
+op <- par(mfrow=c(1,3))
+plot(intercepts ~ population_spur_length, data=allometries.n, col=col_vector[population_code], axes=F, xlab="Spur length [mm]", ylab="Allometric intercept", pch=19)
+axis(1)
+axis(2, las=1)
+abline(m11.n)
+
+plot(slopes ~ population_spur_length, data=allometries.n, col=col_vector[population_code], axes=F, xlab="Spur length [mm]", ylab="Allometric slope", pch=19)
+axis(1)
+axis(2, las=1)
+abline(m12.n)
+
+plot(slopes ~ population_spur_length, data=allometries.n,type='n',axes=F, ann=F)
+legend(6,1, legend = levels(allometries.n$population_code), col=col_vector, bty="n", pch=19, cex=0.9, text.font=3)
+dev.off()
+```
+
+```{r allometry_spurlength_neliana, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Relationship of allometric parameters to spur length of the host plant for \\textit{Rediviva} bee species"), echo=F}
+knitr::include_graphics("allometry_spurlength_neliana.pdf")
+```
+
+
+## Variability of *R. neliana* leg length in relation to spur length
+
+We next examine how the variability in *R. neliana* leg length compares to the variability in the spur length of their host plants.
+
+
+```{r, echo=F}
+spurs <- read.csv("oil bee spur hosts for within and between variance.csv")
+spurs.p <- spurs[grep("neli", spurs$population.code),] # extract data for R. neliana populations
+
+# summarise bee data per population
+legs.mean <- aggregate(exp(beemorph.n$log.leg), by=list(beemorph.n$population_code), mean)
+legs.sd <- aggregate(exp(beemorph.n$log.leg), by=list(beemorph.n$population_code), sd)
+legs.n <- aggregate(exp(beemorph.n$log.leg), by=list(beemorph.n$population_code), length)
+legs <- data.frame(population.code = legs.mean$Group.1, p.mean = legs.mean$x, p.sd = legs.sd$x, 
+                        sample.size.bee = legs.n$x)
+
+dat <- merge(spurs.p, legs, by.x="population.code", by.y="population.code", all.x = F, all.y = F)
+dat$pops <- factor(dat$pops)
+dat$Host.plant.species <- factor(dat$Host.plant.species)
+```
+
+```{r, echo=F, message=FALSE, results="hide"}
+qual_col_pals.short <- qual_col_pals[c("Set1"),]
+col_vector.short = unlist(mapply(brewer.pal, qual_col_pals.short$maxcolors, rownames(qual_col_pals.short)))
+
+dat <- dat[order(as.numeric(dat$pops)),]
+
+pdf("spurvariation_neliana.pdf",8,5)
+plot(mean.spur.lngth ~ as.numeric(pops), data=dat, ylim=c(3,14), xlim=c(0.8,11), axes=F, col=col_vector.short[Host.plant.species], type='p', pch=19, ylab="Spur or leg length [mm]", xlab="Population")
+axis(1, at=c(1:8), labels=dat$pops)
+axis(2,las=1)
+for (i in 1:dim(dat)[1]) segments(i,dat$mean.spur.lngth[i]+dat$sds[i], y1=dat$mean.spur.lngth[i]-dat$sds[i],col=col_vector.short[dat$Host.plant.species[i]])
+
+points(seq(1.1,8.1,by=1), dat$p.mean, pch=1, col="darkorange")
+for (i in 1:dim(dat)[1]) segments(i+0.1,dat$p.mean[i]+dat$p.sd[i], y1=dat$p.mean[i]-dat$p.sd[i], col="darkorange")
+
+legend(8.5,14,legend=c(levels(dat$Host.plant.species)[c(2,3,1,4)],"Bee leg length"), col = c(col_vector.short[unique(dat$Host.plant.species)], "darkorange"), pch=c(rep(19,4), 1),bty="n")
+dev.off()
+```
+```{r spurvariation_neliana, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Spur length of plant populations that are associated with eight different populations of \\textit{R. neliana} bees. The bees used four different plant species across populations, \\textit{Diascia capsularis}, \\textit{Diascia fetcaniensis}, \\textit{Diascia rigescens} and \\textit{Diascia stachyoides}. The foreleg length of \\textit{R. neliana} in the different populations are shown in orange. Solid and open circles show the population mean of the plant spur length and bee leg length, respectively. The vertical lines extend one standard deviation above and below the mean."), echo=F}
+knitr::include_graphics("spurvariation_neliana.pdf")
+```
+
+Figure \ref{fig:spurvariation_neliana} suggests that spur length varied relatively little across populations of *D. rigescens* while one of the *D. capsularis* populations had clearly shorter spurs. Most of the variation in spur length across populations was however due to bees visiting different plant species. Across populations, bee leg length appeared to be less variable than spur length
+
+We compare the variances in bee leg length to the variances in spur length within each population by calculating an F ratio for each population, which we test against the null hypothesis of equal variances $H_0: 1 = \frac{\sigma^2_{beeleg}}{\sigma^2_{spur}} \sim F_{df.bees, df.spur}$.
+
+```{r}
+F.vals <- dat$p.sd^2/dat$sds^2
+df.bees <- dat$sample.size.bee-1
+df.spur <- dat$Sample.size..N.-1
+p.vals <- pf(F.vals, df.bees, df.spur, lower.tail = F)
+```
+
+```{r, echo=F}
+tab <- data.frame(Population = dat$pops, F.vals, df.bees, df.spur, p.vals)
+
+knitr::kable(tab, digits = 3, caption = 'Ratio of the variances in bee leg length and plant spur length')
+
+```
+
+
+The only population where the variance in bee leg length was larger than the variance in spur length was population K but in this case, the bees were using a *Diascia* species with spurs that were shorter than the bees' legs. These data do not lend support to the idea that legs are under stabilising selection to fit a narrow range of spur lengths.
 
 
 # References
