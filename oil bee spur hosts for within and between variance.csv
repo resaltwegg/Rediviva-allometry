@@ -1,4 +1,7 @@
 population code,Population name,Host plant species,mean spur lngth,sds,Sample size (N),pops
+R. neliana_8,Sani Pass ,D. cordata_D. austromontana_D. megathura_D. integerrima,10.56,0.64,26,SP
+R. neliana_7,Garden Castle,D. megathura_D. austromontana,9.58,0.5,16,GC
+R. neliana_11,Sentinel,D. tugelensis_D. vigilid,9.28,0.59,40,ST
 R. neliana_9,Cathedral Peak,D. anastrepta,9.77,0.56,30,CP
 R. neliana_12,Platberg,D. barberae,8.94,0.68,38,P
 R. neliana_16,Lady Grey,D. capsularis,11.66,0.98,30,LG

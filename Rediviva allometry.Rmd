@@ -127,7 +127,7 @@ legend(1.5, 3.0, legend = levels(beemorph$Taxa), col=col_vector, bty="n", pch=19
 dev.off()
 ```
 
-```{r staticallometry, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Allometric relationship of leg length against body size in \\textit{Rediviva} species"), echo=F}
+```{r staticallometry, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Allometric relationship of leg length against body size in \\textit{Rediviva} species. The solid circles indicate the species means."), echo=F}
 knitr::include_graphics("staticallometry.pdf")
 ```
 
@@ -291,6 +291,24 @@ pt(tstat.m5,df=summary(m5)$tTable[3,3], lower.tail = F)*2 # p value (2-sided alt
 ```
 
 According to Models `m3` and `m5`, the evolutionary allometric slope is significantly different from 1. In Model `m4`, $\beta_b$ was estimated with a large standard error, leading to a relatively high P value and weak evidence against $H_0$. We note that Model `m5` was best supported by the data and therefore conclude that --on balance -- the data support the notion that the evolutionary allometric slope is larger than 1.
+
+What proportion of the between species variation in foreleg length is explained by the variation in mean body size between species? I.e. does the evolutionary allometric relationship examined above explain a large proportion of the variation in mean leg length? If it does, this would suggest that body size constrained the evolution of leg length. To examine this question, we re-fitted the model with random intercept (Equation \ref{eq:varint}) without entering mean body size as predictor.
+
+\begin{equation} 
+l_{ij} = \beta_0 + \beta_w (b_{ij} - b_{.j}) + \mu_{Tj} + \epsilon_{ij} 
+\label{eq:varint_0}
+\end{equation}
+
+In this model, the variance of the random effects $\mu_{Tj}$ -- $\sigma^{2}_{Tj}$ -- estimates the total among-species variance in foreleg length whereas the variance of the random effects $\mu_{0j}$ (in Equation \ref{eq:varint}) -- $\sigma^2_{0j}$ -- estimates the among-species variance after accounting for mean body size. Comparing $\sigma^{2}_{Tj}$ to $\sigma^2_{0j}$, we can then estimate the proportion of among-species variance in foreleg length that is explained by species-specific body size:
+
+$$\frac{\sigma^{2}_{Tj} - \sigma^2_{0j}}{\sigma^{2}_{Tj}}$$
+
+```{r}
+m4.T <- lme(log.leg ~ diff.body, random =~1|Taxa, data=beemorph.r) # random intercept
+```
+
+The variance of the random intercepts increased from `r round(as.numeric(varcomp(m4)[[1]]),3)` in Model `m4` to `r round(as.numeric(varcomp(m4.T)[[1]]),3)` in Model `m4.T` and mean body size therefore explained `r round(((varcomp(m4.T)[[1]] - varcomp(m4)[[1]])/varcomp(m4.T)[[1]])*100, 1)`% of the variance in the foreleg length among species.
+
 
 ## Is variation in the static allometric slope driven by *R. neliana*?
 
@@ -854,9 +872,9 @@ Spur length varies among species and the random effects $\mu_{rj}$ in Equation \
 
 We estimate the proportion of variance of the allometric intercept that is explained by spur length as:
 
-$$\frac{\sigma_{0j} - \sigma_{rj}}{\sigma_{rj}}$$
+$$\frac{\sigma^2_{0j} - \sigma^2_{rj}}{\sigma^2_{rj}}$$
 
-where $\sigma_{0j}$ is the estimated variance of the random effects $\mu_{0j}$ and $\sigma_{rj}$ is the estimated variance of the random effects $\mu_{rj}$. We excluded *R. gigas* from this analysis because this species was an outlier with a large influence on the estimated evolutionary allometric relationship.
+where $\sigma^2_{0j}$ is the estimated variance of the random effects $\mu_{0j}$ and $\sigma^2_{rj}$ is the estimated variance of the random effects $\mu_{rj}$. We excluded *R. gigas* from this analysis because this species was an outlier with a large influence on the estimated evolutionary allometric relationship.
 
 
 ```{r}
@@ -1137,22 +1155,22 @@ col_vector.short = unlist(mapply(brewer.pal, qual_col_pals.short$maxcolors, rown
 dat <- dat[order(as.numeric(dat$pops)),]
 
 pdf("spurvariation_neliana.pdf",8,5)
-plot(mean.spur.lngth ~ as.numeric(pops), data=dat, ylim=c(3,14), xlim=c(0.8,11), axes=F, col=col_vector.short[Host.plant.species], type='p', pch=19, ylab="Spur or leg length [mm]", xlab="Population")
-axis(1, at=c(1:8), labels=dat$pops)
+plot(mean.spur.lngth ~ as.numeric(pops), data=dat, ylim=c(3,14), xlim=c(0.8,13), axes=F, col=col_vector.short[Host.plant.species], type='p', pch=19, ylab="Spur or leg length [mm]", xlab="Population")
+axis(1, at=c(1:10), labels=dat$pops)
 axis(2,las=1)
 for (i in 1:dim(dat)[1]) segments(i,dat$mean.spur.lngth[i]+dat$sds[i], y1=dat$mean.spur.lngth[i]-dat$sds[i],col=col_vector.short[dat$Host.plant.species[i]])
 
-points(seq(1.1,8.1,by=1), dat$p.mean, pch=1, col="darkorange")
+points(seq(1.1,10.1,by=1), dat$p.mean, pch=1, col="darkorange")
 for (i in 1:dim(dat)[1]) segments(i+0.1,dat$p.mean[i]+dat$p.sd[i], y1=dat$p.mean[i]-dat$p.sd[i], col="darkorange")
 
-legend(8.5,14,legend=c(levels(dat$Host.plant.species)[c(2,3,1,4)],"Bee leg length"), col = c(col_vector.short[unique(dat$Host.plant.species)], "darkorange"), pch=c(rep(19,4), 1),bty="n")
+legend(10.5,14,legend=c(levels(dat$Host.plant.species)[c(3,4,1,5)], "4 Diascia species","2 Diascia species","Bee leg length"), col = c(col_vector.short[unique(dat$Host.plant.species)], "darkorange"), pch=c(rep(19,6), 1),bty="n")
 dev.off()
 ```
-```{r spurvariation_neliana, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Spur length of plant populations that are associated with eight different populations of \\textit{R. neliana} bees. The bees used four different plant species across populations, \\textit{Diascia capsularis}, \\textit{Diascia fetcaniensis}, \\textit{Diascia rigescens} and \\textit{Diascia stachyoides}. The foreleg length of \\textit{R. neliana} in the different populations are shown in orange. Solid and open circles show the population mean of the plant spur length and bee leg length, respectively. The vertical lines extend one standard deviation above and below the mean."), echo=F}
+```{r spurvariation_neliana, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Spur length of plant populations that are associated with ten different populations of \\textit{R. neliana} bees. The bees used different \\textit{Diascia} species across populations. In population SP, they used four different \\textit{Diascia} species: \\textit{D. cordata, D. austromontana, D. megathura} and \\textit{D. integerrima}. In population ST, they used two different plant species: \\textit{D. tugelensis} and \\textit{D. vigilid}. The foreleg length of \\textit{R. neliana} in the different populations are shown in orange. Solid and open circles show the population mean of the plant spur length and bee leg length, respectively. The vertical lines extend one standard deviation above and below the mean."), echo=F}
 knitr::include_graphics("spurvariation_neliana.pdf")
 ```
 
-Figure \ref{fig:spurvariation_neliana} suggests that spur length varied relatively little across populations of *D. rigescens* while one of the *D. capsularis* populations had clearly shorter spurs. Most of the variation in spur length across populations was however due to bees visiting different plant species. Across populations, bee leg length appeared to be less variable than spur length
+Figure \ref{fig:spurvariation_neliana} suggests that spur length varied relatively little across populations of *D. rigescens* while one of the *D. capsularis* populations had clearly shorter spurs. Most of the variation in spur length across populations was however due to bees visiting different plant species. Where the bees visited different plant species, in populations SP and ST, these plants had flowers with similar spur length and variation in spur length within these populations was not larger than in populations where bees visited a single species. Across populations, bee leg length appeared to be less variable than spur length.
 
 We compare the variances in bee leg length to the variances in spur length within each population by calculating an F ratio for each population, which we test against the null hypothesis of equal variances $H_0: 1 = \frac{\sigma^2_{beeleg}}{\sigma^2_{spur}} \sim F_{df.bees, df.spur}$.
 
@@ -1171,7 +1189,7 @@ knitr::kable(tab, digits = 3, caption = 'Ratio of the variances in bee leg lengt
 ```
 
 
-The only population where the variance in bee leg length was larger than the variance in spur length was population K but in this case, the bees were using a *Diascia* species with spurs that were shorter than the bees' legs. These data do not lend support to the idea that legs are under stabilising selection to fit a narrow range of spur lengths.
+The only two populations where the variance in bee leg length was significantly larger than the variance in spur length were populations K and SP. In population K, the bees were using a *Diascia* species with spurs that were shorter than the bees' legs, whereas in population SP, they were using four *Diascia* species with spurs that were slightly longer. These data do not lend support to the idea that legs are under stabilising selection to fit a narrow range of spur lengths.
 
 
 # References
