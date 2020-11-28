@@ -57,21 +57,11 @@ table.allometries.n <- table_nums(name="allometries.n", caption = 'Summary of mo
 
 table.delta.n <- table_nums(name="delta.n", caption = 'Difference (delta) between the evolutionary and static allometric slopes estimated by three different models across \\textit{R. neliana} populations. lcl and ucl are the lower and upper limits of the 95\\% confidence interval.')
 
-table.intspur <- table_nums(name="intspur", caption = 'Relationship between the allometric intercept and spur length of the host flower for 18 species of \\textit{Rediviva} bees. Beta is the estimated slope of this relationship and the other columns give the lower and upper 95\\% confidence limits.')
-
-
-table.slopespur <- table_nums(name="slopespur", caption = 'Relationship between the allometric slope and spur length of the host flower for 18 species of \\textit{Rediviva} bees. Beta is the estimated slope of this relationship and the other columns give the lower and upper 95\\% confidence limits.')
-
-table.varratios <- table_nums(name="varratios", caption = 'Ratio of the variances in bee leg length and plant spur length')
-
-table.varratios.n <- table_nums(name="varratios.n", caption = 'Ratio of the variances in bee leg length and plant spur length')
-
-# figure captions
 ```
 
 # Introduction
 
-This document is an appendix to the paper 'Allometric relationships shape foreleg evolution of long-legged oil bees (Melittidae: Rediviva)' by Annalie Melin, Res Altwegg, John C. Manning and Jonathan F. Colville, detailing the statistical analyses presented there.
+This document is an appendix to the paper 'Allometric relationships shape foreleg evolution of long-legged oil bees (Melittidae: Rediviva)' by Annalie Melin, Res Altwegg, John C. Manning and Jonathan F. Colville, detailing the statistical analyses presented there. The data are published on UCT's data portal (DOI: 10.25375/uct.13297640).
 
 This study examines narrow-sense allometry of foreleg length in a group of oil-collecting bee species from South Africa. Narrow-sense allometry is defined as
 
@@ -1232,7 +1222,7 @@ abline(fixef(m11)[1], fixef(m11)[4])
 text(1, 16, "b)")
 
 plot(b ~ spur_length, data=allometries.g,type='n',axes=F, ann=F)
-legend(0,1, legend = levels(as.factor(rownames(allometries.g))), col=col_vector, bty="n", pch=19, cex=0.5, text.font=3)
+legend(0,1.1, legend = levels(as.factor(rownames(allometries.g))), col=col_vector, bty="n", pch=19, cex=0.55, text.font=3)
 
 plot(blupintercepts ~ log(population_spur_length+0.5), data=allometries.n, col=col_vector[population_code], axes=F, xlab="log(Spur length [mm] + 0.5)", ylab="log(Allometric intercept)", pch=19)
 axis(1)
@@ -1247,7 +1237,7 @@ abline(fixef(m11.n)[1], fixef(m11.n)[4])
 text(6, 10, "d)")
 
 plot(blupintercepts ~ log(population_spur_length+0.5), data=allometries.n,type='n',axes=F, ann=F)
-legend(1.8,2.3, legend = levels(as.factor(rownames(allometries.n))), col=col_vector[allometries.n$population_code], bty="n", pch=19, cex=0.9, text.font=3)
+legend(1.8,2.3, legend = levels(as.factor(rownames(allometries.n))), col=col_vector[allometries.n$population_code], bty="n", pch=19, cex=0.55, text.font=3)
 
 dev.off()
 ```
